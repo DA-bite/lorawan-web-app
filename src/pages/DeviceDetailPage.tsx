@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -13,6 +12,13 @@ import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import DeviceLineChart from '@/components/charts/DeviceLineChart';
 import {
   ArrowLeft,
@@ -39,14 +45,12 @@ const DeviceDetailPage: React.FC = () => {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isSendingCommand, setIsSendingCommand] = useState(false);
   
-  // Fetch device details
   const { data: device, isLoading, error, refetch } = useQuery({
     queryKey: ['device', id],
     queryFn: () => getDeviceById(id!),
     enabled: !!id,
   });
   
-  // Send command to device
   const handleSendCommand = async (command: string, params: any) => {
     if (!device) return;
     
@@ -61,7 +65,6 @@ const DeviceDetailPage: React.FC = () => {
     }
   };
   
-  // Handle delete device (mock)
   const handleDeleteDevice = () => {
     if (isConfirmingDelete) {
       toast.success('Device has been deleted');
@@ -127,7 +130,6 @@ const DeviceDetailPage: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Button 
@@ -164,7 +166,6 @@ const DeviceDetailPage: React.FC = () => {
           </div>
         </div>
         
-        {/* Device Overview */}
         <Card>
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -244,7 +245,6 @@ const DeviceDetailPage: React.FC = () => {
           </CardContent>
         </Card>
         
-        {/* Tabs */}
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid grid-cols-3 w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -252,10 +252,8 @@ const DeviceDetailPage: React.FC = () => {
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
           
-          {/* Overview Tab */}
           <TabsContent value="overview" className="pt-4 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Device Data */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">Latest Data</CardTitle>
@@ -280,7 +278,6 @@ const DeviceDetailPage: React.FC = () => {
                 </CardContent>
               </Card>
               
-              {/* Quick Actions */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">Quick Actions</CardTitle>
@@ -323,7 +320,6 @@ const DeviceDetailPage: React.FC = () => {
               </Card>
             </div>
             
-            {/* Charts */}
             {device.data?.history && device.data.history.length > 0 && (
               <div className={isMobile ? "w-full overflow-hidden" : ""}>
                 <DeviceLineChart
@@ -335,7 +331,6 @@ const DeviceDetailPage: React.FC = () => {
             )}
           </TabsContent>
           
-          {/* Control Tab */}
           <TabsContent value="control" className="pt-4">
             <Card>
               <CardHeader>
@@ -465,7 +460,6 @@ const DeviceDetailPage: React.FC = () => {
             </Card>
           </TabsContent>
           
-          {/* Settings Tab */}
           <TabsContent value="settings" className="pt-4">
             <Card>
               <CardHeader>

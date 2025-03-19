@@ -46,7 +46,9 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
     formattedTime: format(parseISO(item.timestamp), timeFormat)
   }));
 
-  const handleMouseEnter = (_, index: number) => {
+  // These handlers need to be updated to match the correct types
+  // The event parameter from recharts is a MouseEvent, not an index number
+  const handleMouseEnter = (data: any, index: number) => {
     setActiveIndex(index);
   };
 
@@ -139,7 +141,8 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
                   dot={{ r: 2 }}
                   activeDot={{ r: 5, strokeWidth: 1 }}
                   animationDuration={1500}
-                  onMouseEnter={handleMouseEnter}
+                  // Fixed: correct event handler typings
+                  onMouseEnter={() => handleMouseEnter(null, index)}
                   onMouseLeave={handleMouseLeave}
                 />
               ))}
