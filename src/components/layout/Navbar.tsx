@@ -1,18 +1,73 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Bell, Menu, X, Moon, Sun } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MobileSidebar from './MobileSidebar';
+import NotificationDropdown from '../notifications/NotificationDropdown';
+
+// Mock notifications data
+const mockNotifications = [
+  {
+    id: '1',
+    title: 'Device Offline',
+    message: 'Temperature Sensor #103 is offline for 15 minutes',
+    type: 'error' as const,
+    time: '10m ago',
+    read: false
+  },
+  {
+    id: '2',
+    title: 'Low Battery Warning',
+    message: 'Humidity Sensor #87 has low battery (15%)',
+    type: 'warning' as const,
+    time: '30m ago',
+    read: false
+  },
+  {
+    id: '3',
+    title: 'Device Registered',
+    message: 'New device "Gateway #5" has been registered successfully',
+    type: 'success' as const,
+    time: '2h ago',
+    read: true
+  },
+  {
+    id: '4',
+    title: 'System Update',
+    message: 'LoRaWAN server has been updated to version 2.5.0',
+    type: 'info' as const,
+    time: '1d ago',
+    read: true
+  }
+];
 
 const Navbar: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notifications, setNotifications] = useState(mockNotifications);
+
+  // Mark notification as read
+  const handleMarkAsRead = (id: string) => {
+    setNotifications(prevNotifications => 
+      prevNotifications.map(notification => 
+        notification.id === id ? { ...notification, read: true } : notification
+      )
+    );
+  };
+
+  // Mark all notifications as read
+  const handleMarkAllAsRead = () => {
+    setNotifications(prevNotifications => 
+      prevNotifications.map(notification => ({ ...notification, read: true }))
+    );
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b backdrop-blur bg-background/90 glass transition-colors duration-300">
@@ -40,10 +95,11 @@ const Navbar: React.FC = () => {
         </div>
         
         <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary animate-pulse-slow"></span>
-          </Button>
+          <NotificationDropdown 
+            notifications={notifications}
+            onMarkAsRead={handleMarkAsRead}
+            onMarkAllAsRead={handleMarkAllAsRead}
+          />
           
           <Button variant="ghost" size="icon" onClick={toggleTheme}>
             {theme === 'dark' ? (
@@ -55,13 +111,15 @@ const Navbar: React.FC = () => {
           
           {user ? (
             <div className="flex items-center space-x-1">
-              <Link to="/profile">
-                <Button variant="ghost" className="rounded-full overflow-hidden border h-8 w-8 p-0">
-                  <span className="font-medium text-sm">
-                    {user.name.charAt(0).toUpperCase()}
-                  </span>
-                </Button>
-              </Link>
+              <Button
+                variant="ghost"
+                className="rounded-full overflow-hidden border h-8 w-8 p-0"
+                onClick={() => navigate('/profile')}
+              >
+                <span className="font-medium text-sm">
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+              </Button>
             </div>
           ) : (
             <Link to="/login">

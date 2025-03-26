@@ -37,9 +37,12 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ isOpen, onClose }) => {
       if (e.key === 'Escape') onClose();
     };
     
-    window.addEventListener('keydown', handleEscape);
+    if (isOpen) {
+      window.addEventListener('keydown', handleEscape);
+    }
+    
     return () => window.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -49,6 +52,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ isOpen, onClose }) => {
       <div 
         className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" 
         onClick={onClose}
+        aria-hidden="true"
       />
       
       {/* Sidebar */}
@@ -57,6 +61,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ isOpen, onClose }) => {
           <span className="text-primary font-bold text-xl">LoRaWatchdog</span>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-5 w-5" />
+            <span className="sr-only">Close</span>
           </Button>
         </div>
         
@@ -72,6 +77,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ isOpen, onClose }) => {
                 "animate-fade-in"
               )}
               style={{ animationDelay: `${index * 50}ms` }}
+              onClick={onClose}
             >
               {item.icon}
               <span className="ml-3">{item.name}</span>

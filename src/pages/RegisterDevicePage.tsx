@@ -7,14 +7,49 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, QrCode, Loader2 } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ArrowLeft, QrCode, Loader2, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { registerDevice } from '@/services/deviceService';
+import { Tabs, TabsList, TabsContent, TabsTrigger } from '@/components/ui/tabs';
+
+// Activation method types
+type ActivationMethod = 'OTAA' | 'ABP';
+
+// ABP Parameters interface
+interface ABPParams {
+  devAddr: string;
+  nwkSKey: string;
+  appSKey: string;
+}
+
+// OTAA Parameters interface
+interface OTAAParams {
+  appEUI: string;
+  devEUI: string;
+  appKey: string;
+}
 
 const RegisterDevicePage: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [activationMethod, setActivationMethod] = useState<ActivationMethod>('OTAA');
+  
+  // OTAA parameters
+  const [otaaParams, setOtaaParams] = useState<OTAAParams>({
+    appEUI: '',
+    devEUI: '',
+    appKey: ''
+  });
+  
+  // ABP parameters
+  const [abpParams, setAbpParams] = useState<ABPParams>({
+    devAddr: '',
+    nwkSKey: '',
+    appSKey: ''
+  });
+  
   const [deviceData, setDeviceData] = useState({
     name: '',
     type: '',
@@ -46,11 +81,41 @@ const RegisterDevicePage: React.FC = () => {
     }
   };
   
+  // Update OTAA parameters
+  const updateOTAAParam = (key: keyof OTAAParams, value: string) => {
+    setOtaaParams(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+  
+  // Update ABP parameters
+  const updateABPParam = (key: keyof ABPParams, value: string) => {
+    setAbpParams(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+  
   // Navigate to next step
   const nextStep = () => {
     if (step === 1 && (!deviceData.name || !deviceData.type)) {
       toast.error('Please fill in all required fields');
       return;
+    }
+    
+    if (step === 3) {
+      if (activationMethod === 'OTAA' && 
+         (!otaaParams.appEUI || !otaaParams.devEUI || !otaaParams.appKey)) {
+        toast.error('Please fill in all OTAA parameters');
+        return;
+      }
+      
+      if (activationMethod === 'ABP' && 
+         (!abpParams.devAddr || !abpParams.nwkSKey || !abpParams.appSKey)) {
+        toast.error('Please fill in all ABP parameters');
+        return;
+      }
     }
     
     setStep(prev => prev + 1);
@@ -65,7 +130,15 @@ const RegisterDevicePage: React.FC = () => {
   const handleRegister = async () => {
     try {
       setIsLoading(true);
-      const newDevice = await registerDevice(deviceData);
+      
+      // Combine device data with activation parameters
+      const registrationData = {
+        ...deviceData,
+        activationMethod,
+        activationParams: activationMethod === 'OTAA' ? otaaParams : abpParams
+      };
+      
+      const newDevice = await registerDevice(registrationData);
       toast.success('Device registered successfully');
       navigate(`/devices/${newDevice.id}`);
     } catch (error) {
@@ -126,6 +199,8 @@ const RegisterDevicePage: React.FC = () => {
                       <SelectContent>
                         <SelectItem value="sensor">Sensor</SelectItem>
                         <SelectItem value="actuator">Actuator</SelectItem>
+                        <SelectItem value="gateway">Gateway</SelectItem>
+                        <SelectItem value="tracker">Tracker</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -179,6 +254,108 @@ const RegisterDevicePage: React.FC = () => {
               )}
               
               {step === 3 && (
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <Label>Activation Method</Label>
+                    <RadioGroup 
+                      value={activationMethod} 
+                      onValueChange={(value) => setActivationMethod(value as ActivationMethod)}
+                      className="flex flex-col space-y-3"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="OTAA" id="otaa" />
+                        <Label htmlFor="otaa" className="font-medium">OTAA (Over-the-Air Activation)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="ABP" id="abp" />
+                        <Label htmlFor="abp" className="font-medium">ABP (Activation By Personalization)</Label>
+                      </div>
+                    </RadioGroup>
+                    
+                    <div className="flex items-start space-x-2 p-3 bg-muted/50 rounded-md">
+                      <Info className="h-5 w-5 text-muted-foreground mt-0.5" />
+                      <p className="text-xs text-muted-foreground">
+                        {activationMethod === 'OTAA' 
+                          ? 'OTAA is more secure and allows for key regeneration. Devices perform a join procedure with the network.' 
+                          : 'ABP uses pre-configured keys and doesn\'t require a join procedure. Simpler but less secure than OTAA.'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <Tabs value={activationMethod} onValueChange={(v) => setActivationMethod(v as ActivationMethod)}>
+                    <TabsList className="grid grid-cols-2 w-full">
+                      <TabsTrigger value="OTAA">OTAA Parameters</TabsTrigger>
+                      <TabsTrigger value="ABP">ABP Parameters</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="OTAA" className="mt-4 space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="appEUI">Application EUI</Label>
+                        <Input 
+                          id="appEUI" 
+                          placeholder="e.g., 70B3D57ED0000001"
+                          value={otaaParams.appEUI}
+                          onChange={(e) => updateOTAAParam('appEUI', e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="devEUI">Device EUI</Label>
+                        <Input 
+                          id="devEUI" 
+                          placeholder="e.g., A8404194A1B43019"
+                          value={otaaParams.devEUI}
+                          onChange={(e) => updateOTAAParam('devEUI', e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="appKey">Application Key</Label>
+                        <Input 
+                          id="appKey" 
+                          placeholder="e.g., 11B0282A189B75B0B4D2D8C7FA38548B"
+                          value={otaaParams.appKey}
+                          onChange={(e) => updateOTAAParam('appKey', e.target.value)}
+                        />
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="ABP" className="mt-4 space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="devAddr">Device Address</Label>
+                        <Input 
+                          id="devAddr" 
+                          placeholder="e.g., 26011D83"
+                          value={abpParams.devAddr}
+                          onChange={(e) => updateABPParam('devAddr', e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="nwkSKey">Network Session Key</Label>
+                        <Input 
+                          id="nwkSKey" 
+                          placeholder="e.g., 7959294F19B037889A6F54428B482ABC"
+                          value={abpParams.nwkSKey}
+                          onChange={(e) => updateABPParam('nwkSKey', e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="appSKey">Application Session Key</Label>
+                        <Input 
+                          id="appSKey" 
+                          placeholder="e.g., 2B7E151628AED2A6ABF7158809CF4F3C"
+                          value={abpParams.appSKey}
+                          onChange={(e) => updateABPParam('appSKey', e.target.value)}
+                        />
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              )}
+              
+              {step === 4 && (
                 <div className="space-y-4">
                   <div className="text-center py-2">
                     <h3 className="text-lg font-medium mb-2">Device Information</h3>
@@ -208,6 +385,11 @@ const RegisterDevicePage: React.FC = () => {
                     </div>
                     
                     <div>
+                      <p className="text-sm text-muted-foreground">Activation Method</p>
+                      <p className="font-medium">{activationMethod}</p>
+                    </div>
+                    
+                    <div>
                       <p className="text-sm text-muted-foreground">Network Configuration</p>
                       <p className="font-medium">LoRaWAN v1.0.4</p>
                     </div>
@@ -233,7 +415,7 @@ const RegisterDevicePage: React.FC = () => {
                 </Button>
               )}
               
-              {step < 3 ? (
+              {step < 4 ? (
                 <Button onClick={nextStep}>Next</Button>
               ) : (
                 <Button 
