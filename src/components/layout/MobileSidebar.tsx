@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { navigationItems } from './Sidebar';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface MobileSidebarProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface MobileSidebarProps {
 
 const MobileSidebar: React.FC<MobileSidebarProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
+  const { t } = useLanguage();
   
   // Close sidebar when location changes
   useEffect(() => {
@@ -80,7 +82,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ isOpen, onClose }) => {
               onClick={onClose}
             >
               {item.icon}
-              <span className="ml-3">{item.name}</span>
+              <span className="ml-3">{t(item.nameKey)}</span>
             </Link>
           ))}
         </nav>

@@ -5,19 +5,19 @@ import { Home, BarChart, Map, Bell, Settings, List, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+// Navigation items with translation keys
+export const navigationItems = [
+  { nameKey: 'dashboard', path: '/', icon: <Home className="h-5 w-5" /> },
+  { nameKey: 'devices', path: '/devices', icon: <List className="h-5 w-5" /> },
+  { nameKey: 'analytics', path: '/analytics', icon: <BarChart className="h-5 w-5" /> },
+  { nameKey: 'map_view', path: '/map', icon: <Map className="h-5 w-5" /> },
+  { nameKey: 'alerts', path: '/alerts', icon: <Bell className="h-5 w-5" /> },
+  { nameKey: 'settings', path: '/settings', icon: <Settings className="h-5 w-5" /> },
+];
+
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const { t } = useLanguage();
-
-  // Navigation items with translation keys
-  const navigationItems = [
-    { nameKey: 'dashboard', path: '/', icon: <Home className="h-5 w-5" /> },
-    { nameKey: 'devices', path: '/devices', icon: <List className="h-5 w-5" /> },
-    { nameKey: 'analytics', path: '/analytics', icon: <BarChart className="h-5 w-5" /> },
-    { nameKey: 'map_view', path: '/map', icon: <Map className="h-5 w-5" /> },
-    { nameKey: 'alerts', path: '/alerts', icon: <Bell className="h-5 w-5" /> },
-    { nameKey: 'settings', path: '/settings', icon: <Settings className="h-5 w-5" /> },
-  ];
 
   return (
     <div className="w-64 hidden md:flex flex-col border-r bg-background h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out">
