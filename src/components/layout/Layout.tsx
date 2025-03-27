@@ -17,7 +17,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <Navbar />
       <div className="flex flex-1 overflow-hidden">
         {!isMobile && <Sidebar />}
-        <main className="flex-1 overflow-auto p-4 md:p-6 transition-all duration-300 ease-in-out pb-[4rem] md:pb-6">
+        <main className="flex-1 overflow-auto p-4 md:p-6 transition-all duration-300 ease-in-out pb-20 md:pb-6">
           {children}
         </main>
       </div>
