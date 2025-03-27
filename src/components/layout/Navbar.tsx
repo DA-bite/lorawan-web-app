@@ -79,6 +79,7 @@ const Navbar: React.FC = () => {
               size="icon" 
               onClick={() => setSidebarOpen(true)}
               className="mr-2"
+              aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
               <span className="sr-only">Open sidebar</span>
