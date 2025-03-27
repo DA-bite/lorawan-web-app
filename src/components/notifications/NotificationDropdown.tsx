@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Bell, Check, Info, AlertTriangle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,7 @@ interface Notification {
   type: 'info' | 'warning' | 'error' | 'success';
   time: string;
   read: boolean;
+  deviceId?: string; // Add deviceId for navigation
 }
 
 interface NotificationDropdownProps {
@@ -33,6 +35,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   onMarkAsRead,
   onMarkAllAsRead,
 }) => {
+  const navigate = useNavigate();
   const unreadCount = notifications.filter(n => !n.read).length;
   
   const getIcon = (type: string) => {
@@ -47,6 +50,13 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         return <Check className="h-4 w-4 text-green-500" />;
       default:
         return <Info className="h-4 w-4 text-primary" />;
+    }
+  };
+  
+  const handleNotificationClick = (notification: Notification) => {
+    onMarkAsRead(notification.id);
+    if (notification.deviceId) {
+      navigate(`/devices/${notification.deviceId}`);
     }
   };
   
@@ -83,10 +93,10 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
               <DropdownMenuItem 
                 key={notification.id}
                 className={cn(
-                  "flex flex-col items-start p-3 cursor-default",
+                  "flex flex-col items-start p-3 cursor-pointer", // Changed to cursor-pointer
                   !notification.read && "bg-muted/50"
                 )}
-                onClick={() => onMarkAsRead(notification.id)}
+                onClick={() => handleNotificationClick(notification)}
               >
                 <div className="flex items-center w-full">
                   <div className="mr-2">

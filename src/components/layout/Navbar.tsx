@@ -17,7 +17,8 @@ const mockNotifications = [
     message: 'Temperature Sensor #103 is offline for 15 minutes',
     type: 'error' as const,
     time: '10m ago',
-    read: false
+    read: false,
+    deviceId: '103' // Added deviceId
   },
   {
     id: '2',
@@ -25,7 +26,8 @@ const mockNotifications = [
     message: 'Humidity Sensor #87 has low battery (15%)',
     type: 'warning' as const,
     time: '30m ago',
-    read: false
+    read: false,
+    deviceId: '87' // Added deviceId
   },
   {
     id: '3',
@@ -33,7 +35,8 @@ const mockNotifications = [
     message: 'New device "Gateway #5" has been registered successfully',
     type: 'success' as const,
     time: '2h ago',
-    read: true
+    read: true,
+    deviceId: '5' // Added deviceId
   },
   {
     id: '4',
@@ -42,6 +45,7 @@ const mockNotifications = [
     type: 'info' as const,
     time: '1d ago',
     read: true
+    // No deviceId as this is a system notification
   }
 ];
 

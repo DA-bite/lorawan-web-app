@@ -42,6 +42,12 @@ const SettingsPage: React.FC = () => {
     dailyReports: false
   });
   
+  // Appearance settings
+  const [temperatureUnit, setTemperatureUnit] = useState<'celsius' | 'fahrenheit'>('celsius');
+  const [distanceUnit, setDistanceUnit] = useState<'metric' | 'imperial'>('metric');
+  const [timeFormat, setTimeFormat] = useState<'12h' | '24h'>('24h');
+  const [language, setLanguage] = useState<'english' | 'russian'>('english');
+  
   // Handle notification toggle
   const toggleNotification = (key: keyof typeof notificationSettings) => {
     setNotificationSettings(prev => ({
@@ -320,16 +326,40 @@ const SettingsPage: React.FC = () => {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Temperature Unit</label>
                     <div className="flex space-x-2">
-                      <Button variant="outline" className="flex-1">Celsius (°C)</Button>
-                      <Button variant="outline" className="flex-1">Fahrenheit (°F)</Button>
+                      <Button 
+                        variant={temperatureUnit === 'celsius' ? 'default' : 'outline'} 
+                        className="flex-1"
+                        onClick={() => setTemperatureUnit('celsius')}
+                      >
+                        Celsius (°C)
+                      </Button>
+                      <Button 
+                        variant={temperatureUnit === 'fahrenheit' ? 'default' : 'outline'} 
+                        className="flex-1"
+                        onClick={() => setTemperatureUnit('fahrenheit')}
+                      >
+                        Fahrenheit (°F)
+                      </Button>
                     </div>
                   </div>
                   
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Distance Unit</label>
                     <div className="flex space-x-2">
-                      <Button variant="outline" className="flex-1">Metric (km)</Button>
-                      <Button variant="outline" className="flex-1">Imperial (mi)</Button>
+                      <Button 
+                        variant={distanceUnit === 'metric' ? 'default' : 'outline'} 
+                        className="flex-1"
+                        onClick={() => setDistanceUnit('metric')}
+                      >
+                        Metric (km)
+                      </Button>
+                      <Button 
+                        variant={distanceUnit === 'imperial' ? 'default' : 'outline'} 
+                        className="flex-1"
+                        onClick={() => setDistanceUnit('imperial')}
+                      >
+                        Imperial (mi)
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -341,17 +371,43 @@ const SettingsPage: React.FC = () => {
                   
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Language</label>
-                    <div className="flex items-center">
-                      <Globe className="h-5 w-5 mr-2 text-primary" />
-                      <span>English (US)</span>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant={language === 'english' ? 'default' : 'outline'} 
+                        className="flex-1"
+                        onClick={() => setLanguage('english')}
+                      >
+                        <Globe className="h-4 w-4 mr-2" />
+                        English
+                      </Button>
+                      <Button 
+                        variant={language === 'russian' ? 'default' : 'outline'} 
+                        className="flex-1"
+                        onClick={() => setLanguage('russian')}
+                      >
+                        <Globe className="h-4 w-4 mr-2" />
+                        Russian
+                      </Button>
                     </div>
                   </div>
                   
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Time Format</label>
                     <div className="flex space-x-2">
-                      <Button variant="outline" className="flex-1">12-hour</Button>
-                      <Button variant="outline" className="flex-1">24-hour</Button>
+                      <Button 
+                        variant={timeFormat === '12h' ? 'default' : 'outline'} 
+                        className="flex-1"
+                        onClick={() => setTimeFormat('12h')}
+                      >
+                        12-hour
+                      </Button>
+                      <Button 
+                        variant={timeFormat === '24h' ? 'default' : 'outline'} 
+                        className="flex-1"
+                        onClick={() => setTimeFormat('24h')}
+                      >
+                        24-hour
+                      </Button>
                     </div>
                   </div>
                 </div>
