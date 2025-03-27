@@ -3,19 +3,21 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, BarChart, Map, Bell, Settings, List, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-// Navigation items
-export const navigationItems = [
-  { name: 'Dashboard', path: '/', icon: <Home className="h-5 w-5" /> },
-  { name: 'Devices', path: '/devices', icon: <List className="h-5 w-5" /> },
-  { name: 'Analytics', path: '/analytics', icon: <BarChart className="h-5 w-5" /> },
-  { name: 'Map View', path: '/map', icon: <Map className="h-5 w-5" /> },
-  { name: 'Alerts', path: '/alerts', icon: <Bell className="h-5 w-5" /> },
-  { name: 'Settings', path: '/settings', icon: <Settings className="h-5 w-5" /> },
-];
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
+  const { t } = useLanguage();
+
+  // Navigation items with translation keys
+  const navigationItems = [
+    { nameKey: 'dashboard', path: '/', icon: <Home className="h-5 w-5" /> },
+    { nameKey: 'devices', path: '/devices', icon: <List className="h-5 w-5" /> },
+    { nameKey: 'analytics', path: '/analytics', icon: <BarChart className="h-5 w-5" /> },
+    { nameKey: 'map_view', path: '/map', icon: <Map className="h-5 w-5" /> },
+    { nameKey: 'alerts', path: '/alerts', icon: <Bell className="h-5 w-5" /> },
+    { nameKey: 'settings', path: '/settings', icon: <Settings className="h-5 w-5" /> },
+  ];
 
   return (
     <div className="w-64 hidden md:flex flex-col border-r bg-background h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out">
@@ -34,7 +36,7 @@ const Sidebar: React.FC = () => {
               style={{ animationDelay: `${index * 50}ms` }}
             >
               {item.icon}
-              <span className="ml-3">{item.name}</span>
+              <span className="ml-3">{t(item.nameKey)}</span>
             </Link>
           ))}
         </nav>
@@ -43,7 +45,7 @@ const Sidebar: React.FC = () => {
           <Link to="/devices/register">
             <button className="w-full flex items-center justify-center py-2 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
               <Plus className="h-4 w-4 mr-2" />
-              Register Device
+              {t('register_device')}
             </button>
           </Link>
         </div>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 import { 
   Bell, 
@@ -26,6 +27,7 @@ import {
 const SettingsPage: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   
   // User settings
   const [name, setName] = useState(user?.name || '');
@@ -46,7 +48,6 @@ const SettingsPage: React.FC = () => {
   const [temperatureUnit, setTemperatureUnit] = useState<'celsius' | 'fahrenheit'>('celsius');
   const [distanceUnit, setDistanceUnit] = useState<'metric' | 'imperial'>('metric');
   const [timeFormat, setTimeFormat] = useState<'12h' | '24h'>('24h');
-  const [language, setLanguage] = useState<'english' | 'russian'>('english');
   
   // Handle notification toggle
   const toggleNotification = (key: keyof typeof notificationSettings) => {
@@ -61,23 +62,28 @@ const SettingsPage: React.FC = () => {
     setIsProcessing(true);
     // Simulate API call
     setTimeout(() => {
-      toast.success('Settings saved successfully');
+      toast.success(t('settings') + ' ' + t('save') + ' ' + t('success'));
       setIsProcessing(false);
     }, 800);
+  };
+
+  // Update language state
+  const handleLanguageChange = (newLanguage: 'english' | 'russian') => {
+    setLanguage(newLanguage);
   };
   
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('settings')}</h1>
         </div>
         
         <Tabs defaultValue="account" className="w-full">
           <TabsList className="grid grid-cols-3 sm:w-[400px]">
-            <TabsTrigger value="account">Account</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="appearance">Appearance</TabsTrigger>
+            <TabsTrigger value="account">{t('account')}</TabsTrigger>
+            <TabsTrigger value="notifications">{t('notifications')}</TabsTrigger>
+            <TabsTrigger value="appearance">{t('appearance')}</TabsTrigger>
           </TabsList>
           
           {/* Account Settings */}
@@ -86,15 +92,15 @@ const SettingsPage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <User className="h-5 w-5 mr-2" />
-                  Profile Information
+                  {t('profile_information')}
                 </CardTitle>
                 <CardDescription>
-                  Update your account information
+                  {t('update_account_information')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Name</label>
+                  <label className="text-sm font-medium">{t('name')}</label>
                   <Input 
                     value={name} 
                     onChange={(e) => setName(e.target.value)} 
@@ -102,7 +108,7 @@ const SettingsPage: React.FC = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Email</label>
+                  <label className="text-sm font-medium">{t('email')}</label>
                   <Input 
                     type="email" 
                     value={email} 
@@ -118,12 +124,12 @@ const SettingsPage: React.FC = () => {
                     {isProcessing ? (
                       <>
                         <CheckCircle className="h-4 w-4 mr-2 animate-spin" />
-                        Saving...
+                        {t('saving')}
                       </>
                     ) : (
                       <>
                         <Save className="h-4 w-4 mr-2" />
-                        Save Changes
+                        {t('save_changes')}
                       </>
                     )}
                   </Button>
@@ -135,22 +141,22 @@ const SettingsPage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Shield className="h-5 w-5 mr-2" />
-                  Security
+                  {t('security')}
                 </CardTitle>
                 <CardDescription>
-                  Manage your account security
+                  {t('manage_account_security')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Password</label>
+                  <label className="text-sm font-medium">{t('password')}</label>
                   <div className="flex space-x-2">
                     <Input 
                       type="password" 
                       placeholder="********" 
                       className="flex-1"
                     />
-                    <Button variant="outline">Change</Button>
+                    <Button variant="outline">{t('change')}</Button>
                   </div>
                 </div>
                 
@@ -160,7 +166,7 @@ const SettingsPage: React.FC = () => {
                     onClick={logout}
                   >
                     <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
+                    {t('sign_out')}
                   </Button>
                 </div>
               </CardContent>
@@ -173,21 +179,21 @@ const SettingsPage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Bell className="h-5 w-5 mr-2" />
-                  Notification Preferences
+                  {t('notification_preferences')}
                 </CardTitle>
                 <CardDescription>
-                  Control how and when you receive alerts
+                  {t('control_alerts')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-3">
-                  <h3 className="font-medium">Notification Channels</h3>
+                  <h3 className="font-medium">{t('notification_channels')}</h3>
                   
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <label className="text-sm font-medium">Email Notifications</label>
+                      <label className="text-sm font-medium">{t('email_notifications')}</label>
                       <p className="text-xs text-muted-foreground">
-                        Receive alerts via email
+                        {t('receive_alerts_via_email')}
                       </p>
                     </div>
                     <Switch 
@@ -198,9 +204,9 @@ const SettingsPage: React.FC = () => {
                   
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <label className="text-sm font-medium">Push Notifications</label>
+                      <label className="text-sm font-medium">{t('push_notifications')}</label>
                       <p className="text-xs text-muted-foreground">
-                        Receive alerts on your device
+                        {t('receive_alerts_on_device')}
                       </p>
                     </div>
                     <Switch 
@@ -213,13 +219,13 @@ const SettingsPage: React.FC = () => {
                 <Separator />
                 
                 <div className="space-y-3">
-                  <h3 className="font-medium">Alert Types</h3>
+                  <h3 className="font-medium">{t('alert_types')}</h3>
                   
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <label className="text-sm font-medium">Critical Alerts</label>
+                      <label className="text-sm font-medium">{t('critical_alerts')}</label>
                       <p className="text-xs text-muted-foreground">
-                        Device errors and failures
+                        {t('device_errors_failures')}
                       </p>
                     </div>
                     <Switch 
@@ -230,9 +236,9 @@ const SettingsPage: React.FC = () => {
                   
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <label className="text-sm font-medium">Warning Alerts</label>
+                      <label className="text-sm font-medium">{t('warning_alerts')}</label>
                       <p className="text-xs text-muted-foreground">
-                        Low battery, weak signal, etc.
+                        {t('low_battery_weak_signal')}
                       </p>
                     </div>
                     <Switch 
@@ -243,9 +249,9 @@ const SettingsPage: React.FC = () => {
                   
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <label className="text-sm font-medium">Status Updates</label>
+                      <label className="text-sm font-medium">{t('status_updates')}</label>
                       <p className="text-xs text-muted-foreground">
-                        Device connection status changes
+                        {t('device_connection_status')}
                       </p>
                     </div>
                     <Switch 
@@ -258,13 +264,13 @@ const SettingsPage: React.FC = () => {
                 <Separator />
                 
                 <div className="space-y-3">
-                  <h3 className="font-medium">Reports</h3>
+                  <h3 className="font-medium">{t('reports')}</h3>
                   
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <label className="text-sm font-medium">Daily Report</label>
+                      <label className="text-sm font-medium">{t('daily_report')}</label>
                       <p className="text-xs text-muted-foreground">
-                        Receive daily summary of device status
+                        {t('daily_summary')}
                       </p>
                     </div>
                     <Switch 
@@ -275,7 +281,7 @@ const SettingsPage: React.FC = () => {
                 </div>
                 
                 <div className="pt-4">
-                  <Button onClick={saveSettings}>Save Preferences</Button>
+                  <Button onClick={saveSettings}>{t('save_preferences')}</Button>
                 </div>
               </CardContent>
             </Card>
@@ -287,21 +293,21 @@ const SettingsPage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Monitor className="h-5 w-5 mr-2" />
-                  Display Settings
+                  {t('display_settings')}
                 </CardTitle>
                 <CardDescription>
-                  Customize the look and feel of the application
+                  {t('customize_look_feel')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-3">
-                  <h3 className="font-medium">Theme</h3>
+                  <h3 className="font-medium">{t('theme')}</h3>
                   
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <label className="text-sm font-medium">Dark Mode</label>
+                      <label className="text-sm font-medium">{t('dark_mode')}</label>
                       <p className="text-xs text-muted-foreground">
-                        Toggle between light and dark themes
+                        {t('toggle_theme')}
                       </p>
                     </div>
                     <Switch 
@@ -321,44 +327,44 @@ const SettingsPage: React.FC = () => {
                 <Separator />
                 
                 <div className="space-y-3">
-                  <h3 className="font-medium">Unit Preferences</h3>
+                  <h3 className="font-medium">{t('unit_preferences')}</h3>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Temperature Unit</label>
+                    <label className="text-sm font-medium">{t('temperature_unit')}</label>
                     <div className="flex space-x-2">
                       <Button 
                         variant={temperatureUnit === 'celsius' ? 'default' : 'outline'} 
                         className="flex-1"
                         onClick={() => setTemperatureUnit('celsius')}
                       >
-                        Celsius (°C)
+                        {t('celsius')}
                       </Button>
                       <Button 
                         variant={temperatureUnit === 'fahrenheit' ? 'default' : 'outline'} 
                         className="flex-1"
                         onClick={() => setTemperatureUnit('fahrenheit')}
                       >
-                        Fahrenheit (°F)
+                        {t('fahrenheit')}
                       </Button>
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Distance Unit</label>
+                    <label className="text-sm font-medium">{t('distance_unit')}</label>
                     <div className="flex space-x-2">
                       <Button 
                         variant={distanceUnit === 'metric' ? 'default' : 'outline'} 
                         className="flex-1"
                         onClick={() => setDistanceUnit('metric')}
                       >
-                        Metric (km)
+                        {t('metric')}
                       </Button>
                       <Button 
                         variant={distanceUnit === 'imperial' ? 'default' : 'outline'} 
                         className="flex-1"
                         onClick={() => setDistanceUnit('imperial')}
                       >
-                        Imperial (mi)
+                        {t('imperial')}
                       </Button>
                     </div>
                   </div>
@@ -367,53 +373,53 @@ const SettingsPage: React.FC = () => {
                 <Separator />
                 
                 <div className="space-y-3">
-                  <h3 className="font-medium">Regional Settings</h3>
+                  <h3 className="font-medium">{t('regional_settings')}</h3>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Language</label>
+                    <label className="text-sm font-medium">{t('language')}</label>
                     <div className="flex space-x-2">
                       <Button 
                         variant={language === 'english' ? 'default' : 'outline'} 
                         className="flex-1"
-                        onClick={() => setLanguage('english')}
+                        onClick={() => handleLanguageChange('english')}
                       >
                         <Globe className="h-4 w-4 mr-2" />
-                        English
+                        {t('english')}
                       </Button>
                       <Button 
                         variant={language === 'russian' ? 'default' : 'outline'} 
                         className="flex-1"
-                        onClick={() => setLanguage('russian')}
+                        onClick={() => handleLanguageChange('russian')}
                       >
                         <Globe className="h-4 w-4 mr-2" />
-                        Russian
+                        {t('russian')}
                       </Button>
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Time Format</label>
+                    <label className="text-sm font-medium">{t('time_format')}</label>
                     <div className="flex space-x-2">
                       <Button 
                         variant={timeFormat === '12h' ? 'default' : 'outline'} 
                         className="flex-1"
                         onClick={() => setTimeFormat('12h')}
                       >
-                        12-hour
+                        {t('12_hour')}
                       </Button>
                       <Button 
                         variant={timeFormat === '24h' ? 'default' : 'outline'} 
                         className="flex-1"
                         onClick={() => setTimeFormat('24h')}
                       >
-                        24-hour
+                        {t('24_hour')}
                       </Button>
                     </div>
                   </div>
                 </div>
                 
                 <div className="pt-4">
-                  <Button onClick={saveSettings}>Save Preferences</Button>
+                  <Button onClick={saveSettings}>{t('save_preferences')}</Button>
                 </div>
               </CardContent>
             </Card>

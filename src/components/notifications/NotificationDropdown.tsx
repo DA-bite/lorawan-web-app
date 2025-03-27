@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Notification {
   id: string;
@@ -36,6 +37,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   onMarkAllAsRead,
 }) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const unreadCount = notifications.filter(n => !n.read).length;
   
   const getIcon = (type: string) => {
@@ -74,7 +76,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-80" align="end">
         <DropdownMenuLabel className="flex items-center justify-between">
-          <span>Notifications</span>
+          <span>{t('notifications')}</span>
           {unreadCount > 0 && (
             <Button 
               variant="ghost" 
@@ -82,7 +84,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
               className="text-xs h-7"
               onClick={onMarkAllAsRead}
             >
-              Mark all as read
+              {t('mark_all_as_read')}
             </Button>
           )}
         </DropdownMenuLabel>
@@ -93,7 +95,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
               <DropdownMenuItem 
                 key={notification.id}
                 className={cn(
-                  "flex flex-col items-start p-3 cursor-pointer", // Changed to cursor-pointer
+                  "flex flex-col items-start p-3 cursor-pointer",
                   !notification.read && "bg-muted/50"
                 )}
                 onClick={() => handleNotificationClick(notification)}
@@ -116,7 +118,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
             ))
           ) : (
             <div className="py-6 text-center">
-              <p className="text-sm text-muted-foreground">No notifications</p>
+              <p className="text-sm text-muted-foreground">{t('no_notifications')}</p>
             </div>
           )}
         </DropdownMenuGroup>
