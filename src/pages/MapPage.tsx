@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +12,7 @@ import { toast } from 'sonner';
 
 const MapPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const mapRef = useRef<google.maps.Map | null>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
   
   const { data: devices = [] } = useQuery({
     queryKey: ['devices'],
@@ -24,8 +25,11 @@ const MapPage: React.FC = () => {
   
   const handleZoomIn = () => {
     if (mapRef.current) {
-      const currentZoom = mapRef.current.getZoom() || 12;
-      mapRef.current.setZoom(currentZoom + 1);
+      const currentZoom = mapRef.current.getZoom();
+      mapRef.current.easeTo({
+        zoom: currentZoom + 1,
+        duration: 300
+      });
     } else {
       toast.error("Map is not available");
     }
@@ -33,8 +37,11 @@ const MapPage: React.FC = () => {
 
   const handleZoomOut = () => {
     if (mapRef.current) {
-      const currentZoom = mapRef.current.getZoom() || 12;
-      mapRef.current.setZoom(Math.max(currentZoom - 1, 1));
+      const currentZoom = mapRef.current.getZoom();
+      mapRef.current.easeTo({
+        zoom: Math.max(currentZoom - 1, 1),
+        duration: 300
+      });
     } else {
       toast.error("Map is not available");
     }
@@ -44,14 +51,12 @@ const MapPage: React.FC = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const pos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-
           if (mapRef.current) {
-            mapRef.current.panTo(pos);
-            mapRef.current.setZoom(14);
+            mapRef.current.flyTo({
+              center: [position.coords.longitude, position.coords.latitude],
+              zoom: 14,
+              duration: 2000
+            });
             toast.success("Location found");
           }
         },
@@ -62,6 +67,10 @@ const MapPage: React.FC = () => {
     } else {
       toast.error("Geolocation is not supported by your browser");
     }
+  };
+
+  const handleMapLoad = (map: mapboxgl.Map) => {
+    mapRef.current = map;
   };
   
   return (
@@ -110,7 +119,10 @@ const MapPage: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent className="p-0 pt-4">
-            <MapView className="rounded-none h-[70vh]" />
+            <MapView 
+              className="rounded-none h-[70vh]" 
+              onMapLoad={handleMapLoad}
+            />
           </CardContent>
         </Card>
         
