@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 import { Loader2, MapPin, AlertTriangle } from 'lucide-react';
@@ -5,6 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 import { getDevices, Device } from '@/services/deviceService';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface MapViewProps {
   className?: string;
@@ -33,10 +36,12 @@ const MapView: React.FC<MapViewProps> = ({ className }) => {
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string>('');
+  const [apiKeyEntered, setApiKeyEntered] = useState<boolean>(false);
   
   const { isLoaded, loadError: apiLoadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: 'AIzaSyC2yvJh-ZuPfx1h7JzHkXHGmz92_7gdmBE'
+    googleMapsApiKey: apiKeyEntered ? apiKey : ''
   });
 
   useEffect(() => {
@@ -95,12 +100,50 @@ const MapView: React.FC<MapViewProps> = ({ className }) => {
     }
   };
 
+  const handleApiKeySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!apiKey.trim()) {
+      toast.error('Please enter a valid Google Maps API key');
+      return;
+    }
+    setApiKeyEntered(true);
+    toast.success('API key applied. Loading map...');
+  };
+
+  if (!apiKeyEntered) {
+    return (
+      <div className={cn("w-full h-full flex flex-col items-center justify-center bg-gray-100 rounded-lg p-6", className)}>
+        <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
+        <h3 className="text-lg font-medium text-gray-800 mb-4">Google Maps API Key Required</h3>
+        <p className="text-sm text-gray-600 mb-6 text-center max-w-md">
+          Please enter a valid Google Maps API key to display the map. You can get an API key from the 
+          <a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline"> Google Cloud Console</a>.
+        </p>
+        <form onSubmit={handleApiKeySubmit} className="w-full max-w-md space-y-4">
+          <Input 
+            type="text" 
+            placeholder="Enter Google Maps API Key" 
+            value={apiKey} 
+            onChange={(e) => setApiKey(e.target.value)}
+            className="w-full"
+          />
+          <Button type="submit" className="w-full">
+            Apply API Key
+          </Button>
+        </form>
+      </div>
+    );
+  }
+
   if (loadError || apiLoadError) {
     return (
       <div className={cn("w-full h-full flex flex-col items-center justify-center bg-gray-100 rounded-lg", className)}>
         <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
         <h3 className="text-lg font-medium text-red-800">Map could not be loaded</h3>
-        <p className="text-sm text-gray-600 mt-2">Please check your internet connection and try again</p>
+        <p className="text-sm text-gray-600 mt-2 mb-4 text-center">Please check your API key and internet connection</p>
+        <Button variant="outline" onClick={() => setApiKeyEntered(false)}>
+          Enter a different API key
+        </Button>
       </div>
     );
   }
