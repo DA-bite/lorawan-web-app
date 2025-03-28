@@ -1,13 +1,26 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import MapView from '@/components/map/MapView';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, ZoomIn, ZoomOut, LocateFixed } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { getDevices } from '@/services/deviceService';
 
 const MapPage: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const { data: devices = [] } = useQuery({
+    queryKey: ['devices'],
+    queryFn: getDevices
+  });
+  
+  const onlineDevices = devices.filter(d => d.status === 'online').length;
+  const warningDevices = devices.filter(d => d.status === 'warning').length;
+  const offlineDevices = devices.filter(d => d.status === 'offline' || d.status === 'error').length;
+  
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
@@ -20,6 +33,8 @@ const MapPage: React.FC = () => {
               <Input 
                 placeholder="Search devices..." 
                 className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
@@ -62,10 +77,10 @@ const MapPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">Total Devices</p>
-                  <p className="text-2xl font-bold">24</p>
+                  <p className="text-2xl font-bold">{devices.length}</p>
                 </div>
-                <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                  <div className="h-6 w-6 rounded-full bg-green-500" />
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="h-6 w-6 rounded-full bg-primary" />
                 </div>
               </div>
             </CardContent>
@@ -76,7 +91,7 @@ const MapPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">Online</p>
-                  <p className="text-2xl font-bold">18</p>
+                  <p className="text-2xl font-bold">{onlineDevices}</p>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
                   <div className="h-6 w-6 rounded-full bg-green-500" />
@@ -90,7 +105,7 @@ const MapPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">Warning</p>
-                  <p className="text-2xl font-bold">4</p>
+                  <p className="text-2xl font-bold">{warningDevices}</p>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
                   <div className="h-6 w-6 rounded-full bg-yellow-500" />
@@ -104,7 +119,7 @@ const MapPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">Offline</p>
-                  <p className="text-2xl font-bold">2</p>
+                  <p className="text-2xl font-bold">{offlineDevices}</p>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
                   <div className="h-6 w-6 rounded-full bg-red-500" />

@@ -21,7 +21,7 @@ export interface Device {
   };
 }
 
-// Mock devices data
+// Mock devices data with locations around Almaty, Kazakhstan
 const mockDevices: Device[] = [
   {
     id: 'd1',
@@ -31,7 +31,7 @@ const mockDevices: Device[] = [
     battery: 87,
     signal: 92,
     lastSeen: new Date().toISOString(),
-    location: { lat: 37.7749, lng: -122.4194 },
+    location: { lat: 43.238949, lng: 76.889709 }, // Almaty center
     data: {
       temperature: 22.5,
       humidity: 45,
@@ -50,7 +50,7 @@ const mockDevices: Device[] = [
     battery: 32,
     signal: 78,
     lastSeen: new Date(Date.now() - 120000).toISOString(),
-    location: { lat: 37.7833, lng: -122.4167 },
+    location: { lat: 43.245501, lng: 76.946001 }, // Medeu area
     data: {
       motionDetected: false,
       lastMotion: new Date(Date.now() - 3600000).toISOString(),
@@ -68,7 +68,7 @@ const mockDevices: Device[] = [
     battery: 100,
     signal: 96,
     lastSeen: new Date().toISOString(),
-    location: { lat: 37.7848, lng: -122.4295 },
+    location: { lat: 43.222600, lng: 76.851200 }, // Almaty Arena area
     data: {
       power: true,
       brightness: 80,
@@ -87,7 +87,7 @@ const mockDevices: Device[] = [
     battery: 45,
     signal: 23,
     lastSeen: new Date(Date.now() - 86400000).toISOString(),
-    location: { lat: 37.7691, lng: -122.4449 },
+    location: { lat: 43.257200, lng: 76.945800 }, // Shymbulak area
     data: {
       leakDetected: true,
       waterLevel: 0.5,
@@ -105,7 +105,7 @@ const mockDevices: Device[] = [
     battery: 0,
     signal: 0,
     lastSeen: new Date(Date.now() - 259200000).toISOString(),
-    location: { lat: 37.7790, lng: -122.4130 },
+    location: { lat: 43.230100, lng: 76.826500 }, // Botanical Garden area
     data: {
       moisture: 68,
       history: Array.from({ length: 24 }, (_, i) => ({
