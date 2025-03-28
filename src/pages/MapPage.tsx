@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import MapView from '@/components/map/MapView';
@@ -8,9 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Search, ZoomIn, ZoomOut, LocateFixed } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getDevices } from '@/services/deviceService';
+import { toast } from 'sonner';
 
 const MapPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const mapRef = useRef<google.maps.Map | null>(null);
   
   const { data: devices = [] } = useQuery({
     queryKey: ['devices'],
@@ -20,6 +22,52 @@ const MapPage: React.FC = () => {
   const onlineDevices = devices.filter(d => d.status === 'online').length;
   const warningDevices = devices.filter(d => d.status === 'warning').length;
   const offlineDevices = devices.filter(d => d.status === 'offline' || d.status === 'error').length;
+  
+  const handleZoomIn = () => {
+    if (mapRef.current) {
+      const currentZoom = mapRef.current.getZoom() || 12;
+      mapRef.current.setZoom(currentZoom + 1);
+    } else {
+      toast.error("Map is not available");
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (mapRef.current) {
+      const currentZoom = mapRef.current.getZoom() || 12;
+      mapRef.current.setZoom(Math.max(currentZoom - 1, 1));
+    } else {
+      toast.error("Map is not available");
+    }
+  };
+
+  const handleLocateMe = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const pos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+
+          if (mapRef.current) {
+            mapRef.current.panTo(pos);
+            mapRef.current.setZoom(14);
+            toast.success("Location found");
+          }
+        },
+        () => {
+          toast.error("Error getting your location");
+        }
+      );
+    } else {
+      toast.error("Geolocation is not supported by your browser");
+    }
+  };
+  
+  const setMapRef = (map: google.maps.Map | null) => {
+    mapRef.current = map;
+  };
   
   return (
     <Layout>
@@ -51,15 +99,15 @@ const MapPage: React.FC = () => {
               </div>
               
               <div className="flex items-center space-x-2">
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" onClick={handleZoomIn}>
                   <ZoomIn className="h-4 w-4" />
                   <span className="sr-only">Zoom In</span>
                 </Button>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" onClick={handleZoomOut}>
                   <ZoomOut className="h-4 w-4" />
                   <span className="sr-only">Zoom Out</span>
                 </Button>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" onClick={handleLocateMe}>
                   <LocateFixed className="h-4 w-4" />
                   <span className="sr-only">Current Location</span>
                 </Button>

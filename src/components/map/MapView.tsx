@@ -1,10 +1,11 @@
 
 import React, { useCallback, useState } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
-import { Loader2, MapPin } from 'lucide-react';
+import { Loader2, MapPin, AlertTriangle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getDevices, Device } from '@/services/deviceService';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface MapViewProps {
   className?: string;
@@ -32,10 +33,17 @@ const mapOptions = {
 const MapView: React.FC<MapViewProps> = ({ className }) => {
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   
-  const { isLoaded } = useJsApiLoader({
+  const { isLoaded, loadError: apiLoadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: 'AIzaSyC2yvJh-ZuPfx1h7JzHkXHGmz92_7gdmBE' // This is a placeholder API key, replace with your actual key
+    googleMapsApiKey: 'AIzaSyC2yvJh-ZuPfx1h7JzHkXHGmz92_7gdmBE', // Replace with your actual API key in production
+    onLoad: () => console.log('Google Maps API loaded successfully'),
+    onError: (error) => {
+      console.error('Error loading Google Maps API:', error);
+      setLoadError('Failed to load Google Maps');
+      toast.error('Failed to load Google Maps');
+    }
   });
 
   const { data: devices = [], isLoading: isLoadingDevices } = useQuery({
@@ -44,10 +52,29 @@ const MapView: React.FC<MapViewProps> = ({ className }) => {
   });
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
+    console.log('Map loaded successfully');
     setMap(map);
-  }, []);
+    
+    // Adjust bounds to fit all markers if there are devices
+    if (devices.length > 0) {
+      const bounds = new google.maps.LatLngBounds();
+      devices.forEach(device => {
+        bounds.extend(device.location);
+      });
+      map.fitBounds(bounds);
+      
+      // If the zoom is too close, set a max zoom level
+      const listener = google.maps.event.addListener(map, 'idle', () => {
+        if (map.getZoom() && map.getZoom() > 15) {
+          map.setZoom(15);
+        }
+        google.maps.event.removeListener(listener);
+      });
+    }
+  }, [devices]);
 
   const onMapUnmount = useCallback(() => {
+    console.log('Map unmounted');
     setMap(null);
   }, []);
 
@@ -65,9 +92,21 @@ const MapView: React.FC<MapViewProps> = ({ className }) => {
     }
   };
 
+  // Handle error state
+  if (loadError || apiLoadError) {
+    return (
+      <div className={cn("w-full h-full flex flex-col items-center justify-center bg-gray-100 rounded-lg", className)}>
+        <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
+        <h3 className="text-lg font-medium text-red-800">Map could not be loaded</h3>
+        <p className="text-sm text-gray-600 mt-2">Please check your internet connection and try again</p>
+      </div>
+    );
+  }
+
+  // Handle loading state
   if (!isLoaded) {
     return (
-      <div className={`w-full h-full flex items-center justify-center ${className || ''}`}>
+      <div className={cn("w-full h-full flex items-center justify-center", className)}>
         <Loader2 className="h-10 w-10 text-primary animate-spin" />
         <span className="ml-2 text-lg font-medium">Loading map...</span>
       </div>
@@ -75,7 +114,7 @@ const MapView: React.FC<MapViewProps> = ({ className }) => {
   }
 
   return (
-    <div className={`w-full h-full relative overflow-hidden ${className || ''}`}>
+    <div className={cn("w-full h-full relative overflow-hidden", className)}>
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={defaultCenter}
