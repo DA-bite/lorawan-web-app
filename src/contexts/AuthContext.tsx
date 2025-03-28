@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { toast } from "sonner";
@@ -33,12 +32,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const getUserWithName = (currentUser: User | null): ExtendedUser | null => {
     if (!currentUser) return null;
     
-    // Try to get name from user_metadata or raw_user_meta_data
+    // Get name from user_metadata
     const name = 
       currentUser.user_metadata?.name || 
       currentUser.user_metadata?.full_name ||
-      currentUser.raw_user_meta_data?.name ||
-      currentUser.raw_user_meta_data?.full_name ||
+      currentUser.user_metadata?.preferred_username ||
       '';
     
     return {
