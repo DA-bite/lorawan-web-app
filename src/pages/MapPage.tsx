@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -63,10 +62,6 @@ const MapPage: React.FC = () => {
     } else {
       toast.error("Geolocation is not supported by your browser");
     }
-  };
-  
-  const setMapRef = (map: google.maps.Map | null) => {
-    mapRef.current = map;
   };
   
   return (

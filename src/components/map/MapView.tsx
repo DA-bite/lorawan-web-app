@@ -37,14 +37,20 @@ const MapView: React.FC<MapViewProps> = ({ className }) => {
   
   const { isLoaded, loadError: apiLoadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: 'AIzaSyC2yvJh-ZuPfx1h7JzHkXHGmz92_7gdmBE', // Replace with your actual API key in production
-    onLoad: () => console.log('Google Maps API loaded successfully'),
+    googleMapsApiKey: 'AIzaSyC2yvJh-ZuPfx1h7JzHkXHGmz92_7gdmBE',
     onError: (error) => {
       console.error('Error loading Google Maps API:', error);
       setLoadError('Failed to load Google Maps');
       toast.error('Failed to load Google Maps');
     }
   });
+
+  // Log when the API is loaded
+  React.useEffect(() => {
+    if (isLoaded) {
+      console.log('Google Maps API loaded successfully');
+    }
+  }, [isLoaded]);
 
   const { data: devices = [], isLoading: isLoadingDevices } = useQuery({
     queryKey: ['devices'],
