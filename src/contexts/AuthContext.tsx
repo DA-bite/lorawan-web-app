@@ -4,8 +4,13 @@ import { Session, User } from '@supabase/supabase-js';
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
 
+// Extend the User type to include our custom properties
+interface ExtendedUser extends User {
+  name?: string;
+}
+
 interface AuthContextType {
-  user: User | null;
+  user: ExtendedUser | null;
   session: Session | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -20,16 +25,34 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<ExtendedUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Helper function to extract the name from user metadata
+  const getUserWithName = (currentUser: User | null): ExtendedUser | null => {
+    if (!currentUser) return null;
+    
+    // Try to get name from user_metadata or raw_user_meta_data
+    const name = 
+      currentUser.user_metadata?.name || 
+      currentUser.user_metadata?.full_name ||
+      currentUser.raw_user_meta_data?.name ||
+      currentUser.raw_user_meta_data?.full_name ||
+      '';
+    
+    return {
+      ...currentUser,
+      name
+    };
+  };
 
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         setSession(currentSession);
-        setUser(currentSession?.user ?? null);
+        setUser(getUserWithName(currentSession?.user ?? null));
         
         if (event === 'SIGNED_IN') {
           toast.success('Signed in successfully');
@@ -42,7 +65,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
-      setUser(currentSession?.user ?? null);
+      setUser(getUserWithName(currentSession?.user ?? null));
       setLoading(false);
     });
 
