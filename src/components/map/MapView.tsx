@@ -1,5 +1,4 @@
-
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 import { Loader2, MapPin, AlertTriangle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -37,20 +36,20 @@ const MapView: React.FC<MapViewProps> = ({ className }) => {
   
   const { isLoaded, loadError: apiLoadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: 'AIzaSyC2yvJh-ZuPfx1h7JzHkXHGmz92_7gdmBE',
-    onError: (error) => {
-      console.error('Error loading Google Maps API:', error);
-      setLoadError('Failed to load Google Maps');
-      toast.error('Failed to load Google Maps');
-    }
+    googleMapsApiKey: 'AIzaSyC2yvJh-ZuPfx1h7JzHkXHGmz92_7gdmBE'
   });
 
-  // Log when the API is loaded
-  React.useEffect(() => {
+  useEffect(() => {
     if (isLoaded) {
       console.log('Google Maps API loaded successfully');
     }
-  }, [isLoaded]);
+    
+    if (apiLoadError) {
+      console.error('Error loading Google Maps API:', apiLoadError);
+      setLoadError('Failed to load Google Maps');
+      toast.error('Failed to load Google Maps');
+    }
+  }, [isLoaded, apiLoadError]);
 
   const { data: devices = [], isLoading: isLoadingDevices } = useQuery({
     queryKey: ['devices'],
@@ -61,7 +60,6 @@ const MapView: React.FC<MapViewProps> = ({ className }) => {
     console.log('Map loaded successfully');
     setMap(map);
     
-    // Adjust bounds to fit all markers if there are devices
     if (devices.length > 0) {
       const bounds = new google.maps.LatLngBounds();
       devices.forEach(device => {
@@ -69,7 +67,6 @@ const MapView: React.FC<MapViewProps> = ({ className }) => {
       });
       map.fitBounds(bounds);
       
-      // If the zoom is too close, set a max zoom level
       const listener = google.maps.event.addListener(map, 'idle', () => {
         if (map.getZoom() && map.getZoom() > 15) {
           map.setZoom(15);
@@ -98,7 +95,6 @@ const MapView: React.FC<MapViewProps> = ({ className }) => {
     }
   };
 
-  // Handle error state
   if (loadError || apiLoadError) {
     return (
       <div className={cn("w-full h-full flex flex-col items-center justify-center bg-gray-100 rounded-lg", className)}>
@@ -109,7 +105,6 @@ const MapView: React.FC<MapViewProps> = ({ className }) => {
     );
   }
 
-  // Handle loading state
   if (!isLoaded) {
     return (
       <div className={cn("w-full h-full flex items-center justify-center", className)}>
