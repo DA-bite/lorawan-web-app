@@ -1,132 +1,114 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Loader2 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
 import { getDevices, Device } from '@/services/deviceService';
+import { useQuery } from '@tanstack/react-query';
+import DeviceMarker from '@/components/map/DeviceMarker';
+import MapTokenForm from '@/components/map/MapTokenForm';
+import MapErrorDisplay from '@/components/map/MapErrorDisplay';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
-import DeviceMarker from './DeviceMarker';
-import MapTokenForm from './MapTokenForm';
-import MapErrorDisplay from './MapErrorDisplay';
 
 interface MapViewProps {
   className?: string;
   onMapLoad?: (map: mapboxgl.Map) => void;
 }
 
-// Almaty, Kazakhstan coordinates
-const defaultCenter = {
-  lat: 43.238949,
-  lng: 76.889709
-};
+// Try to get token from localStorage
+const MAPBOX_TOKEN_KEY = 'mapbox_access_token';
+const defaultToken = localStorage.getItem(MAPBOX_TOKEN_KEY) || 
+  'pk.eyJ1IjoiZGFuaXlhcmFiZGlraGFuIiwiYSI6ImNtOHR1dmF1MjBnYmUya3NieHgyZ3dmb2UifQ.Glo7aviuawWatbsEjiyMYw';
 
-// Default Mapbox token (can be modified via the form if needed)
-const DEFAULT_MAPBOX_TOKEN = 'pk.eyJ1IjoiZGFuaXlhcmFiZGlraGFuIiwiYSI6ImNtOHR1dmF1MjBnYmUya3NieHgyZ3dmb2UifQ.Glo7aviuawWatbsEjiyMYw';
-
-const MapView: React.FC<MapViewProps> = ({ className, onMapLoad }) => {
-  const [map, setMap] = useState<mapboxgl.Map | null>(null);
+const MapView: React.FC<MapViewProps> = ({ 
+  className,
+  onMapLoad 
+}) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [apiKey, setApiKey] = useState<string>(DEFAULT_MAPBOX_TOKEN);
-  const [apiKeyEntered, setApiKeyEntered] = useState<boolean>(!!DEFAULT_MAPBOX_TOKEN);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const [mapToken, setMapToken] = useState<string>(defaultToken);
+  const [mapLoaded, setMapLoaded] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   
-  const { data: devices = [], isLoading: isLoadingDevices } = useQuery({
+  // Query for devices
+  const { data: devices = [] } = useQuery({
     queryKey: ['devices'],
     queryFn: getDevices
   });
-
-  // Initialize the map when the API key is provided
+  
+  const resetToken = () => {
+    localStorage.removeItem(MAPBOX_TOKEN_KEY);
+    setMapToken('');
+    setError(null);
+    if (map.current) {
+      map.current.remove();
+      map.current = null;
+    }
+  };
+  
   useEffect(() => {
-    if (!apiKeyEntered || !mapContainer.current) return;
-
+    if (!mapToken || error || !mapContainer.current || map.current) return;
+    
     try {
-      // Initialize map with Mapbox
-      mapboxgl.accessToken = apiKey;
+      mapboxgl.accessToken = mapToken;
       
       const newMap = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/light-v11',
-        center: [defaultCenter.lng, defaultCenter.lat],
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [76.889709, 43.238949], // Almaty, Kazakhstan
         zoom: 12
       });
-
-      newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
-      newMap.addControl(new mapboxgl.GeolocateControl({
-        positionOptions: {
-          enableHighAccuracy: true
-        },
-        trackUserLocation: true
-      }));
-
-      // Add device markers when map loads
+      
       newMap.on('load', () => {
-        console.log('Map loaded successfully');
-        setMap(newMap);
-        
-        if (onMapLoad) {
-          onMapLoad(newMap);
-        }
-      });
-
-      return () => {
-        newMap.remove();
-      };
-    } catch (error) {
-      console.error('Error initializing Mapbox:', error);
-      setLoadError('Failed to initialize Mapbox');
-      toast.error('Failed to initialize Mapbox');
-    }
-  }, [apiKeyEntered, apiKey, onMapLoad]);
-
-  // Fit map to show all devices
-  useEffect(() => {
-    if (map && devices.length > 0) {
-      const bounds = new mapboxgl.LngLatBounds();
-      devices.forEach(device => {
-        bounds.extend([device.location.lng, device.location.lat]);
+        setMapLoaded(true);
+        if (onMapLoad) onMapLoad(newMap);
       });
       
-      map.fitBounds(bounds, {
-        padding: 50,
-        maxZoom: 15
+      newMap.on('error', (e) => {
+        console.error('Mapbox error:', e);
+        setError('Failed to load the map. Please check your access token.');
       });
+      
+      map.current = newMap;
+      
+      return () => {
+        newMap.remove();
+        map.current = null;
+      };
+    } catch (err) {
+      console.error('Error initializing Mapbox:', err);
+      setError('Failed to initialize the map. Please check your access token.');
     }
-  }, [devices, map]);
-
-  const handleApiKeySubmit = (token: string) => {
-    setApiKey(token);
-    setApiKeyEntered(true);
-  };
-
-  const resetApiKey = () => {
-    setApiKeyEntered(false);
-    setLoadError(null);
-  };
-
-  if (!apiKeyEntered) {
-    return <MapTokenForm className={className} onTokenSubmit={handleApiKeySubmit} defaultToken={apiKey} />;
-  }
-
-  if (loadError) {
-    return <MapErrorDisplay className={className} onReset={resetApiKey} />;
-  }
-
-  if (isLoadingDevices || !map) {
+  }, [mapToken, error, onMapLoad]);
+  
+  // If we have no token, show the form
+  if (!mapToken) {
     return (
-      <div className={cn("w-full h-full flex items-center justify-center", className)}>
-        <Loader2 className="h-10 w-10 text-primary animate-spin" />
-        <span className="ml-2 text-lg font-medium">Loading map...</span>
-      </div>
+      <MapTokenForm 
+        className={className}
+        onTokenSubmit={setMapToken}
+      />
     );
   }
-
+  
+  // If we have an error, show the error display
+  if (error) {
+    return (
+      <MapErrorDisplay 
+        className={className}
+        onReset={resetToken} 
+      />
+    );
+  }
+  
   return (
-    <div className={cn("w-full h-full relative overflow-hidden", className)}>
-      <div ref={mapContainer} className="w-full h-full rounded-md"></div>
-      {devices.map(device => (
-        <DeviceMarker key={device.id} device={device} map={map} />
+    <div ref={mapContainer} className={cn("w-full h-full", className)}>
+      {/* Only render markers when map is loaded */}
+      {mapLoaded && map.current && devices.map(device => (
+        <DeviceMarker 
+          key={device.id}
+          device={device}
+          map={map.current!}
+        />
       ))}
     </div>
   );

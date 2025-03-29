@@ -12,12 +12,16 @@ interface MapTokenFormProps {
   defaultToken?: string;
 }
 
+const MAPBOX_TOKEN_KEY = 'mapbox_access_token';
+
 const MapTokenForm: React.FC<MapTokenFormProps> = ({ 
   className, 
   onTokenSubmit,
   defaultToken = ""
 }) => {
-  const [apiKey, setApiKey] = React.useState<string>(defaultToken);
+  // Try to get token from localStorage if not provided
+  const initialToken = defaultToken || localStorage.getItem(MAPBOX_TOKEN_KEY) || "";
+  const [apiKey, setApiKey] = React.useState<string>(initialToken);
 
   const handleApiKeySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +29,10 @@ const MapTokenForm: React.FC<MapTokenFormProps> = ({
       toast.error('Please enter a valid Mapbox access token');
       return;
     }
+    
+    // Save the token to localStorage for future use
+    localStorage.setItem(MAPBOX_TOKEN_KEY, apiKey);
+    
     onTokenSubmit(apiKey);
     toast.success('API key applied. Loading map...');
   };

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getDeviceById, sendCommand } from '@/services/deviceService';
+import { getDeviceById, sendCommand, deleteDevice } from '@/services/deviceService';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,10 +65,16 @@ const DeviceDetailPage: React.FC = () => {
     }
   };
   
-  const handleDeleteDevice = () => {
+  const handleDeleteDevice = async () => {
+    if (!device) return;
+    
     if (isConfirmingDelete) {
-      toast.success('Device has been deleted');
-      navigate('/devices');
+      try {
+        await deleteDevice(device.id);
+        navigate('/devices');
+      } catch (error) {
+        console.error('Failed to delete device:', error);
+      }
     } else {
       setIsConfirmingDelete(true);
       setTimeout(() => setIsConfirmingDelete(false), 3000);
