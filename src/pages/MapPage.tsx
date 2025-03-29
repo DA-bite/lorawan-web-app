@@ -23,6 +23,7 @@ const MapPage: React.FC = () => {
   const warningDevices = devices.filter(d => d.status === 'warning').length;
   const offlineDevices = devices.filter(d => d.status === 'offline' || d.status === 'error').length;
   
+  // Map control functions
   const handleZoomIn = () => {
     if (mapRef.current) {
       const currentZoom = mapRef.current.getZoom();
