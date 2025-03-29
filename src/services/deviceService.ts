@@ -2,6 +2,7 @@
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Json } from "@/integrations/supabase/types";
 
 export interface Device {
   id: string;
@@ -45,12 +46,15 @@ export const getDevices = async (): Promise<Device[]> => {
       id: item.id,
       name: item.name,
       type: item.type,
-      status: item.status,
+      // Ensure status is one of the valid values in the union type
+      status: validateStatus(item.status),
       battery: item.battery,
       signal: item.signal,
       lastSeen: item.last_seen,
-      location: item.location,
-      data: item.data
+      // Parse the location from JSONB to our location object
+      location: parseLocation(item.location),
+      // Parse the data from JSONB to our data object
+      data: parseData(item.data)
     }));
   } catch (error) {
     console.error('Error fetching devices:', error);
@@ -78,12 +82,12 @@ export const getDeviceById = async (id: string): Promise<Device> => {
       id: data.id,
       name: data.name,
       type: data.type,
-      status: data.status,
+      status: validateStatus(data.status),
       battery: data.battery,
       signal: data.signal,
       lastSeen: data.last_seen,
-      location: data.location,
-      data: data.data
+      location: parseLocation(data.location),
+      data: parseData(data.data)
     };
   } catch (error) {
     console.error(`Error fetching device ${id}:`, error);
@@ -91,6 +95,38 @@ export const getDeviceById = async (id: string): Promise<Device> => {
     throw error;
   }
 };
+
+// Helper functions to parse and validate data from the database
+function validateStatus(status: string): 'online' | 'offline' | 'warning' | 'error' {
+  const validStatuses = ['online', 'offline', 'warning', 'error'] as const;
+  if (validStatuses.includes(status as any)) {
+    return status as 'online' | 'offline' | 'warning' | 'error';
+  }
+  // Default to offline if invalid status
+  return 'offline';
+}
+
+function parseLocation(locationData: Json): { lat: number; lng: number } {
+  if (typeof locationData === 'object' && locationData !== null) {
+    const location = locationData as Record<string, any>;
+    // Check if lat and lng are numbers
+    if (typeof location.lat === 'number' && typeof location.lng === 'number') {
+      return { lat: location.lat, lng: location.lng };
+    }
+  }
+  // Return default location if parsing fails
+  console.warn('Invalid location data:', locationData);
+  return { lat: 43.238949, lng: 76.889709 }; // Default to Almaty
+}
+
+function parseData(jsonData: Json): { [key: string]: any } {
+  if (typeof jsonData === 'object' && jsonData !== null) {
+    return jsonData as Record<string, any>;
+  }
+  // Return empty object if parsing fails
+  console.warn('Invalid device data:', jsonData);
+  return {};
+}
 
 // Send command to device
 export const sendCommand = async (deviceId: string, command: string, params: any): Promise<boolean> => {
@@ -168,12 +204,12 @@ export const updateDeviceSettings = async (deviceId: string, settings: any): Pro
       id: data.id,
       name: data.name,
       type: data.type,
-      status: data.status,
+      status: validateStatus(data.status),
       battery: data.battery,
       signal: data.signal,
       lastSeen: data.last_seen,
-      location: data.location,
-      data: data.data
+      location: parseLocation(data.location),
+      data: parseData(data.data)
     };
   } catch (error) {
     console.error('Error updating device settings:', error);
@@ -220,12 +256,12 @@ export const registerDevice = async (deviceData: Partial<Device>): Promise<Devic
       id: data.id,
       name: data.name,
       type: data.type,
-      status: data.status,
+      status: validateStatus(data.status),
       battery: data.battery,
       signal: data.signal,
       lastSeen: data.last_seen,
-      location: data.location,
-      data: data.data
+      location: parseLocation(data.location),
+      data: parseData(data.data)
     };
   } catch (error) {
     console.error('Error registering device:', error);
