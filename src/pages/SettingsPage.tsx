@@ -1,16 +1,15 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { toast } from 'sonner';
+import { useSettings } from '@/contexts/SettingsContext';
+import { Input } from "@/components/ui/input"
 import { 
   Bell, 
   User, 
@@ -19,8 +18,7 @@ import {
   Monitor, 
   Moon, 
   Sun,
-  CheckCircle, 
-  Save,
+  RotateCcw,
   LogOut
 } from 'lucide-react';
 
@@ -28,55 +26,57 @@ const SettingsPage: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
-  
-  // User settings
-  const [name, setName] = useState(user?.name || '');
-  const [email, setEmail] = useState(user?.email || '');
-  const [isProcessing, setIsProcessing] = useState(false);
-  
-  // Notification settings
-  const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    criticalAlerts: true,
-    warningAlerts: true,
-    statusUpdates: true,
-    dailyReports: false
-  });
-  
-  // Appearance settings
-  const [temperatureUnit, setTemperatureUnit] = useState<'celsius' | 'fahrenheit'>('celsius');
-  const [distanceUnit, setDistanceUnit] = useState<'metric' | 'imperial'>('metric');
-  const [timeFormat, setTimeFormat] = useState<'12h' | '24h'>('24h');
+  const { settings, updateSettings, resetSettings, loadingSettings } = useSettings();
   
   // Handle notification toggle
-  const toggleNotification = (key: keyof typeof notificationSettings) => {
-    setNotificationSettings(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+  const toggleNotification = (key: keyof typeof settings) => {
+    updateSettings({ [key]: !settings[key as keyof typeof settings] });
   };
   
-  // Save settings
-  const saveSettings = () => {
-    setIsProcessing(true);
-    // Simulate API call
-    setTimeout(() => {
-      toast.success(t('settings') + ' ' + t('save') + ' ' + t('success'));
-      setIsProcessing(false);
-    }, 800);
-  };
-
   // Update language state
   const handleLanguageChange = (newLanguage: 'english' | 'russian') => {
     setLanguage(newLanguage);
   };
+
+  // Set temperature unit
+  const setTemperatureUnit = (unit: 'celsius' | 'fahrenheit') => {
+    updateSettings({ temperatureUnit: unit });
+  };
+
+  // Set distance unit
+  const setDistanceUnit = (unit: 'metric' | 'imperial') => {
+    updateSettings({ distanceUnit: unit });
+  };
+
+  // Set time format
+  const setTimeFormat = (format: '12h' | '24h') => {
+    updateSettings({ timeFormat: format });
+  };
+  
+  if (loadingSettings) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-[50vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </Layout>
+    );
+  }
   
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">{t('settings')}</h1>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={resetSettings}
+            className="flex items-center"
+          >
+            <RotateCcw className="mr-2 h-4 w-4" />
+            {t('reset_to_defaults')}
+          </Button>
         </div>
         
         <Tabs defaultValue="account" className="w-full">
@@ -86,7 +86,7 @@ const SettingsPage: React.FC = () => {
             <TabsTrigger value="appearance">{t('appearance')}</TabsTrigger>
           </TabsList>
           
-          {/* Account Settings */}
+          {/* Account Settings Tab */}
           <TabsContent value="account" className="pt-4 space-y-4">
             <Card>
               <CardHeader>
@@ -102,8 +102,8 @@ const SettingsPage: React.FC = () => {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">{t('name')}</label>
                   <Input 
-                    value={name} 
-                    onChange={(e) => setName(e.target.value)} 
+                    value={user?.name || ''}
+                    disabled
                   />
                 </div>
                 
@@ -111,28 +111,9 @@ const SettingsPage: React.FC = () => {
                   <label className="text-sm font-medium">{t('email')}</label>
                   <Input 
                     type="email" 
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value)} 
+                    value={user?.email || ''}
+                    disabled
                   />
-                </div>
-                
-                <div className="pt-2">
-                  <Button 
-                    onClick={saveSettings}
-                    disabled={isProcessing}
-                  >
-                    {isProcessing ? (
-                      <>
-                        <CheckCircle className="h-4 w-4 mr-2 animate-spin" />
-                        {t('saving')}
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-2" />
-                        {t('save_changes')}
-                      </>
-                    )}
-                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -155,8 +136,9 @@ const SettingsPage: React.FC = () => {
                       type="password" 
                       placeholder="********" 
                       className="flex-1"
+                      disabled
                     />
-                    <Button variant="outline">{t('change')}</Button>
+                    <Button variant="outline" disabled>{t('change')}</Button>
                   </div>
                 </div>
                 
@@ -173,7 +155,7 @@ const SettingsPage: React.FC = () => {
             </Card>
           </TabsContent>
           
-          {/* Notification Settings */}
+          {/* Notification Settings Tab */}
           <TabsContent value="notifications" className="pt-4">
             <Card>
               <CardHeader>
@@ -197,7 +179,7 @@ const SettingsPage: React.FC = () => {
                       </p>
                     </div>
                     <Switch 
-                      checked={notificationSettings.emailNotifications}
+                      checked={settings.emailNotifications}
                       onCheckedChange={() => toggleNotification('emailNotifications')}
                     />
                   </div>
@@ -210,7 +192,7 @@ const SettingsPage: React.FC = () => {
                       </p>
                     </div>
                     <Switch 
-                      checked={notificationSettings.pushNotifications}
+                      checked={settings.pushNotifications}
                       onCheckedChange={() => toggleNotification('pushNotifications')}
                     />
                   </div>
@@ -229,7 +211,7 @@ const SettingsPage: React.FC = () => {
                       </p>
                     </div>
                     <Switch 
-                      checked={notificationSettings.criticalAlerts}
+                      checked={settings.criticalAlerts}
                       onCheckedChange={() => toggleNotification('criticalAlerts')}
                     />
                   </div>
@@ -242,7 +224,7 @@ const SettingsPage: React.FC = () => {
                       </p>
                     </div>
                     <Switch 
-                      checked={notificationSettings.warningAlerts}
+                      checked={settings.warningAlerts}
                       onCheckedChange={() => toggleNotification('warningAlerts')}
                     />
                   </div>
@@ -255,7 +237,7 @@ const SettingsPage: React.FC = () => {
                       </p>
                     </div>
                     <Switch 
-                      checked={notificationSettings.statusUpdates}
+                      checked={settings.statusUpdates}
                       onCheckedChange={() => toggleNotification('statusUpdates')}
                     />
                   </div>
@@ -274,20 +256,16 @@ const SettingsPage: React.FC = () => {
                       </p>
                     </div>
                     <Switch 
-                      checked={notificationSettings.dailyReports}
+                      checked={settings.dailyReports}
                       onCheckedChange={() => toggleNotification('dailyReports')}
                     />
                   </div>
-                </div>
-                
-                <div className="pt-4">
-                  <Button onClick={saveSettings}>{t('save_preferences')}</Button>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
           
-          {/* Appearance Settings */}
+          {/* Appearance Settings Tab */}
           <TabsContent value="appearance" className="pt-4">
             <Card>
               <CardHeader>
@@ -333,14 +311,14 @@ const SettingsPage: React.FC = () => {
                     <label className="text-sm font-medium">{t('temperature_unit')}</label>
                     <div className="flex space-x-2">
                       <Button 
-                        variant={temperatureUnit === 'celsius' ? 'default' : 'outline'} 
+                        variant={settings.temperatureUnit === 'celsius' ? 'default' : 'outline'} 
                         className="flex-1"
                         onClick={() => setTemperatureUnit('celsius')}
                       >
                         {t('celsius')}
                       </Button>
                       <Button 
-                        variant={temperatureUnit === 'fahrenheit' ? 'default' : 'outline'} 
+                        variant={settings.temperatureUnit === 'fahrenheit' ? 'default' : 'outline'} 
                         className="flex-1"
                         onClick={() => setTemperatureUnit('fahrenheit')}
                       >
@@ -353,14 +331,14 @@ const SettingsPage: React.FC = () => {
                     <label className="text-sm font-medium">{t('distance_unit')}</label>
                     <div className="flex space-x-2">
                       <Button 
-                        variant={distanceUnit === 'metric' ? 'default' : 'outline'} 
+                        variant={settings.distanceUnit === 'metric' ? 'default' : 'outline'} 
                         className="flex-1"
                         onClick={() => setDistanceUnit('metric')}
                       >
                         {t('metric')}
                       </Button>
                       <Button 
-                        variant={distanceUnit === 'imperial' ? 'default' : 'outline'} 
+                        variant={settings.distanceUnit === 'imperial' ? 'default' : 'outline'} 
                         className="flex-1"
                         onClick={() => setDistanceUnit('imperial')}
                       >
@@ -401,14 +379,14 @@ const SettingsPage: React.FC = () => {
                     <label className="text-sm font-medium">{t('time_format')}</label>
                     <div className="flex space-x-2">
                       <Button 
-                        variant={timeFormat === '12h' ? 'default' : 'outline'} 
+                        variant={settings.timeFormat === '12h' ? 'default' : 'outline'} 
                         className="flex-1"
                         onClick={() => setTimeFormat('12h')}
                       >
                         {t('12_hour')}
                       </Button>
                       <Button 
-                        variant={timeFormat === '24h' ? 'default' : 'outline'} 
+                        variant={settings.timeFormat === '24h' ? 'default' : 'outline'} 
                         className="flex-1"
                         onClick={() => setTimeFormat('24h')}
                       >
@@ -416,10 +394,6 @@ const SettingsPage: React.FC = () => {
                       </Button>
                     </div>
                   </div>
-                </div>
-                
-                <div className="pt-4">
-                  <Button onClick={saveSettings}>{t('save_preferences')}</Button>
                 </div>
               </CardContent>
             </Card>

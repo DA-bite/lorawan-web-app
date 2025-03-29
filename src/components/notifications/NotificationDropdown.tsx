@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Bell, Check, Info, AlertTriangle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Bell, Check, Info, AlertTriangle, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
@@ -14,31 +14,72 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { 
+  Notification,
+  getNotifications, 
+  markNotificationAsRead, 
+  markAllNotificationsAsRead 
+} from '@/services/notification';
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: 'info' | 'warning' | 'error' | 'success';
-  time: string;
-  read: boolean;
-  deviceId?: string; // Add deviceId for navigation
-}
-
-interface NotificationDropdownProps {
-  notifications: Notification[];
-  onMarkAsRead: (id: string) => void;
-  onMarkAllAsRead: () => void;
-}
-
-const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
-  notifications,
-  onMarkAsRead,
-  onMarkAllAsRead,
-}) => {
+const NotificationDropdown: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(false);
+  
   const unreadCount = notifications.filter(n => !n.read).length;
+  
+  // Fetch notifications when the component mounts or user changes
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+    }
+  }, [user]);
+
+  const fetchNotifications = async () => {
+    setLoading(true);
+    try {
+      const data = await getNotifications();
+      setNotifications(data);
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await markNotificationAsRead(id);
+      setNotifications(prev => 
+        prev.map(notification => 
+          notification.id === id ? { ...notification, read: true } : notification
+        )
+      );
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  };
+  
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications(prev => 
+        prev.map(notification => ({ ...notification, read: true }))
+      );
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
+  };
+  
+  const handleNotificationClick = (notification: Notification) => {
+    handleMarkAsRead(notification.id);
+    if (notification.deviceId) {
+      navigate(`/devices/${notification.deviceId}`);
+    }
+  };
   
   const getIcon = (type: string) => {
     switch (type) {
@@ -52,13 +93,6 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         return <Check className="h-4 w-4 text-green-500" />;
       default:
         return <Info className="h-4 w-4 text-primary" />;
-    }
-  };
-  
-  const handleNotificationClick = (notification: Notification) => {
-    onMarkAsRead(notification.id);
-    if (notification.deviceId) {
-      navigate(`/devices/${notification.deviceId}`);
     }
   };
   
@@ -82,7 +116,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
               variant="ghost" 
               size="sm" 
               className="text-xs h-7"
-              onClick={onMarkAllAsRead}
+              onClick={handleMarkAllAsRead}
             >
               {t('mark_all_as_read')}
             </Button>
@@ -90,7 +124,11 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup className="max-h-[300px] overflow-y-auto">
-          {notifications.length > 0 ? (
+          {loading ? (
+            <div className="py-6 text-center">
+              <p className="text-sm text-muted-foreground">{t('loading')}</p>
+            </div>
+          ) : notifications.length > 0 ? (
             notifications.map((notification) => (
               <DropdownMenuItem 
                 key={notification.id}
