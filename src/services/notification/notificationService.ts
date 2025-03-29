@@ -30,7 +30,7 @@ export const getNotifications = async (): Promise<Notification[]> => {
       userId: item.user_id,
       title: item.title,
       message: item.message,
-      type: item.type,
+      type: item.type as 'info' | 'warning' | 'error' | 'success',
       time: formatTimeAgo(new Date(item.created_at)), // Format time as relative
       read: item.read,
       deviceId: item.device_id
@@ -123,7 +123,7 @@ export const createNotification = async (notification: Omit<Notification, 'id' |
       userId: data.user_id,
       title: data.title,
       message: data.message,
-      type: data.type,
+      type: data.type as 'info' | 'warning' | 'error' | 'success',
       time: formatTimeAgo(new Date(data.created_at)),
       read: data.read,
       deviceId: data.device_id
