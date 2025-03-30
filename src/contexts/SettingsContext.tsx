@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
+import { Json } from '@/integrations/supabase/types';
 
 interface AppSettings {
   temperatureUnit: 'celsius' | 'fahrenheit';
@@ -53,7 +54,8 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
       const storedSettings = localStorage.getItem('appSettings');
       if (storedSettings) {
         try {
-          setSettings({ ...defaultSettings, ...JSON.parse(storedSettings) });
+          const parsedSettings = JSON.parse(storedSettings);
+          setSettings({ ...defaultSettings, ...parsedSettings });
         } catch (error) {
           console.error('Failed to parse stored settings:', error);
         }
@@ -77,7 +79,9 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
       }
 
       if (data) {
-        setSettings({ ...defaultSettings, ...data.settings });
+        // Type assertion to ensure the settings from the database are treated as a partial AppSettings
+        const dbSettings = data.settings as unknown as Partial<AppSettings>;
+        setSettings({ ...defaultSettings, ...dbSettings });
       } else {
         // If no settings found, create default settings
         await saveSettingsToDatabase(defaultSettings);
@@ -102,7 +106,7 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
         .from('user_settings')
         .upsert({
           user_id: user.id,
-          settings: newSettings,
+          settings: newSettings as unknown as Json,
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
