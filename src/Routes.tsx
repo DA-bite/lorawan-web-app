@@ -26,9 +26,9 @@ const Routes: React.FC = () => {
   return (
     <RouterRoutes>
       {/* Public routes */}
-      <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/" element={<Navigate to="/login" />} />
+      <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
+      <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <RegisterPage />} />
 
       {/* Protected routes with layout */}
       <Route element={<ProtectedRoute><Layout><Outlet /></Layout></ProtectedRoute>}>
