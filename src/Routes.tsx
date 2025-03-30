@@ -31,49 +31,33 @@ const Routes: React.FC = () => {
       <Route path="/register" element={<RegisterPage />} />
 
       {/* Protected routes with layout */}
-      <Route element={<Layout><Outlet /></Layout>}>
-        <Route 
-          path="/dashboard" 
-          element={user ? <DashboardPage /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/devices" 
-          element={user ? <DevicesPage /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/devices/:deviceId" 
-          element={user ? <DeviceDetailPage /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/devices/register" 
-          element={user ? <RegisterDevicePage /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/map" 
-          element={user ? <MapPage /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/analytics" 
-          element={user ? <AnalyticsPage /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/alerts" 
-          element={user ? <AlertsPage /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/settings" 
-          element={user ? <SettingsPage /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/profile" 
-          element={user ? <ProfilePage /> : <Navigate to="/login" />} 
-        />
+      <Route element={<ProtectedRoute><Layout><Outlet /></Layout></ProtectedRoute>}>
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/devices" element={<DevicesPage />} />
+        <Route path="/devices/:deviceId" element={<DeviceDetailPage />} />
+        <Route path="/devices/register" element={<RegisterDevicePage />} />
+        <Route path="/map" element={<MapPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
+        <Route path="/alerts" element={<AlertsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Route>
 
       {/* Catch all */}
       <Route path="*" element={<NotFound />} />
     </RouterRoutes>
   );
+};
+
+// Protected route component
+const ProtectedRoute: React.FC<{children: React.ReactNode}> = ({ children }) => {
+  const { user } = useAuth();
+  
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+  
+  return <>{children}</>;
 };
 
 export default Routes;
