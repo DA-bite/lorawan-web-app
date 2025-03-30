@@ -6,12 +6,12 @@ import { Notification } from "./notificationTypes";
 // Get notifications for the current user
 export const getNotifications = async (): Promise<Notification[]> => {
   try {
-    const { data: session } = await supabase.auth.getSession();
-    if (!session.session) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
       return [];
     }
 
-    const userId = session.session.user.id;
+    const userId = sessionData.session.user.id;
 
     const { data, error } = await supabase
       .from('notifications')
@@ -44,10 +44,17 @@ export const getNotifications = async (): Promise<Notification[]> => {
 // Mark a notification as read
 export const markNotificationAsRead = async (id: string): Promise<boolean> => {
   try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      toast.error('You must be logged in to update notifications');
+      return false;
+    }
+
     const { error } = await supabase
       .from('notifications')
       .update({ read: true })
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', sessionData.session.user.id);
 
     if (error) {
       console.error('Error marking notification as read:', error);
@@ -64,12 +71,13 @@ export const markNotificationAsRead = async (id: string): Promise<boolean> => {
 // Mark all notifications as read for the current user
 export const markAllNotificationsAsRead = async (): Promise<boolean> => {
   try {
-    const { data: session } = await supabase.auth.getSession();
-    if (!session.session) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      toast.error('You must be logged in to update notifications');
       return false;
     }
 
-    const userId = session.session.user.id;
+    const userId = sessionData.session.user.id;
 
     const { error } = await supabase
       .from('notifications')
@@ -91,12 +99,12 @@ export const markAllNotificationsAsRead = async (): Promise<boolean> => {
 // Create a new notification
 export const createNotification = async (notification: Omit<Notification, 'id' | 'userId' | 'time'>): Promise<Notification | null> => {
   try {
-    const { data: session } = await supabase.auth.getSession();
-    if (!session.session) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
       return null;
     }
 
-    const userId = session.session.user.id;
+    const userId = sessionData.session.user.id;
     const createdAt = new Date().toISOString();
 
     const { data, error } = await supabase
@@ -137,10 +145,17 @@ export const createNotification = async (notification: Omit<Notification, 'id' |
 // Delete a notification
 export const deleteNotification = async (id: string): Promise<boolean> => {
   try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      toast.error('You must be logged in to delete notifications');
+      return false;
+    }
+
     const { error } = await supabase
       .from('notifications')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', sessionData.session.user.id);
 
     if (error) {
       console.error('Error deleting notification:', error);

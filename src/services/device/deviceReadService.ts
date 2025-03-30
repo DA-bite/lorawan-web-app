@@ -7,8 +7,8 @@ import { validateStatus, parseLocation, parseData } from "./deviceUtils";
 // Get all devices for the current user
 export const getDevices = async (): Promise<Device[]> => {
   try {
-    const { data: session } = await supabase.auth.getSession();
-    if (!session.session) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
       toast.error('You must be logged in to view devices');
       return [];
     }
@@ -16,6 +16,7 @@ export const getDevices = async (): Promise<Device[]> => {
     const { data, error } = await supabase
       .from('devices')
       .select('*')
+      .eq('user_id', sessionData.session.user.id)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -49,10 +50,17 @@ export const getDevices = async (): Promise<Device[]> => {
 // Get a single device by ID
 export const getDeviceById = async (id: string): Promise<Device> => {
   try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      toast.error('You must be logged in to view device details');
+      throw new Error('Authentication required');
+    }
+
     const { data, error } = await supabase
       .from('devices')
       .select('*')
       .eq('id', id)
+      .eq('user_id', sessionData.session.user.id)
       .single();
 
     if (error) {

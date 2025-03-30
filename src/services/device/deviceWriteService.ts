@@ -7,6 +7,12 @@ import { validateStatus, parseLocation, parseData } from "./deviceUtils";
 // Update device settings
 export const updateDeviceSettings = async (deviceId: string, settings: any): Promise<Device> => {
   try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      toast.error('You must be logged in to update device settings');
+      throw new Error('Authentication required');
+    }
+
     // Convert our frontend model to the database model
     const dbSettings: any = {};
     
@@ -20,6 +26,7 @@ export const updateDeviceSettings = async (deviceId: string, settings: any): Pro
       .from('devices')
       .update(dbSettings)
       .eq('id', deviceId)
+      .eq('user_id', sessionData.session.user.id)
       .select()
       .single();
     
@@ -50,15 +57,15 @@ export const updateDeviceSettings = async (deviceId: string, settings: any): Pro
 // Register a new device
 export const registerDevice = async (deviceData: Partial<Device>): Promise<Device> => {
   try {
-    const { data: session } = await supabase.auth.getSession();
-    if (!session.session) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
       toast.error('You must be logged in to register devices');
       throw new Error('Authentication required');
     }
 
     // Prepare the device data for database
     const newDevice = {
-      user_id: session.session.user.id,
+      user_id: sessionData.session.user.id,
       name: deviceData.name || 'New Device',
       type: deviceData.type || 'sensor',
       status: deviceData.status || 'offline',
@@ -102,10 +109,17 @@ export const registerDevice = async (deviceData: Partial<Device>): Promise<Devic
 // Delete a device
 export const deleteDevice = async (deviceId: string): Promise<boolean> => {
   try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      toast.error('You must be logged in to delete devices');
+      throw new Error('Authentication required');
+    }
+
     const { error } = await supabase
       .from('devices')
       .delete()
-      .eq('id', deviceId);
+      .eq('id', deviceId)
+      .eq('user_id', sessionData.session.user.id);
     
     if (error) {
       throw error;

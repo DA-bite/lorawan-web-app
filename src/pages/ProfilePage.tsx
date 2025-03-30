@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { CheckCircle, Save, User } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const ProfilePage: React.FC = () => {
   const { user, logout } = useAuth();
@@ -14,13 +15,37 @@ const ProfilePage: React.FC = () => {
   const [email, setEmail] = useState(user?.email || '');
   const [isProcessing, setIsProcessing] = useState(false);
   
-  const handleSaveProfile = () => {
+  // Update state when user changes
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setEmail(user.email || '');
+    }
+  }, [user]);
+  
+  const handleSaveProfile = async () => {
+    if (!user) {
+      toast.error('You must be logged in to update your profile');
+      return;
+    }
+
     setIsProcessing(true);
-    // Simulate API call
-    setTimeout(() => {
+    
+    try {
+      // Update user metadata
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: { name }
+      });
+      
+      if (updateError) throw updateError;
+      
       toast.success('Profile updated successfully');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
+    } finally {
       setIsProcessing(false);
-    }, 800);
+    }
   };
   
   return (
@@ -41,7 +66,7 @@ const ProfilePage: React.FC = () => {
             <Avatar className="h-32 w-32">
               <AvatarImage src="" alt={user?.name} />
               <AvatarFallback className="text-4xl bg-primary/10">
-                {user?.name?.charAt(0).toUpperCase()}
+                {name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             
@@ -75,8 +100,10 @@ const ProfilePage: React.FC = () => {
               <Input 
                 type="email" 
                 value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
+                disabled
+                className="bg-muted"
               />
+              <p className="text-xs text-muted-foreground">Email cannot be changed</p>
             </div>
             
             <div className="pt-2">

@@ -15,7 +15,7 @@ import {
   Plus
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { getDevices, Device } from '@/services/deviceService';
+import { getDevices } from '@/services/deviceService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -27,10 +27,12 @@ const DashboardPage: React.FC = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
-  // Fetch devices
-  const { data: devices, isLoading, error } = useQuery({
+  // Fetch devices with React Query for automatic refresh
+  const { data: devices, isLoading, error, refetch } = useQuery({
     queryKey: ['devices'],
     queryFn: getDevices,
+    refetchOnWindowFocus: true,
+    staleTime: 60000, // Consider data stale after 1 minute
   });
   
   // Device status counts
@@ -108,6 +110,7 @@ const DashboardPage: React.FC = () => {
             variant="outline" 
             size="sm" 
             onClick={() => {
+              refetch();
               toast({
                 title: "Dashboard updated",
                 description: "Latest data has been loaded",
