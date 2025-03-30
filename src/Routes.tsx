@@ -26,12 +26,12 @@ const Routes: React.FC = () => {
   return (
     <RouterRoutes>
       {/* Public routes */}
-      <Route path="/" element={<Navigate to="/login" />} />
+      <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
       <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <RegisterPage />} />
 
       {/* Protected routes with layout */}
-      <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+      <Route element={user ? <Layout /> : <Navigate to="/login" />}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/devices" element={<DevicesPage />} />
         <Route path="/devices/:deviceId" element={<DeviceDetailPage />} />
@@ -47,17 +47,6 @@ const Routes: React.FC = () => {
       <Route path="*" element={<NotFound />} />
     </RouterRoutes>
   );
-};
-
-// Protected route component
-const ProtectedRoute: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const { user } = useAuth();
-  
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
-  
-  return <>{children}</>;
 };
 
 export default Routes;
