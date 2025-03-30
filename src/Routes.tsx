@@ -16,7 +16,6 @@ import ProfilePage from '@/pages/ProfilePage';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import NotFound from '@/pages/NotFound';
-import Index from '@/pages/Index';
 
 // Layout
 import Layout from '@/components/layout/Layout';
@@ -27,7 +26,7 @@ const Routes: React.FC = () => {
   return (
     <RouterRoutes>
       {/* Public routes */}
-      <Route path="/" element={<Index />} />
+      <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
