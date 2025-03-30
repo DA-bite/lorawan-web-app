@@ -31,7 +31,7 @@ const Routes: React.FC = () => {
       <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <RegisterPage />} />
 
       {/* Protected routes with layout */}
-      <Route element={<ProtectedRoute><Layout><Outlet /></Layout></ProtectedRoute>}>
+      <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/devices" element={<DevicesPage />} />
         <Route path="/devices/:deviceId" element={<DeviceDetailPage />} />
