@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Routes as RouterRoutes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes as RouterRoutes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Pages
