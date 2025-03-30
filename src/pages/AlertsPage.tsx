@@ -1,8 +1,6 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getDevices, Device } from '@/services/deviceService';
-import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,12 +25,9 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
 
-// Mock alerts data
 const generateMockAlerts = (devices: Device[] | undefined) => {
   if (!devices || !devices.length) return [];
   
-  // Generate more alerts than would normally be needed, 
-  // so we have a reasonable list to work with
   const alertTypes = [
     { 
       type: 'error', 
@@ -69,13 +64,12 @@ const generateMockAlerts = (devices: Device[] | undefined) => {
   return devices
     .filter(d => d.status === 'warning' || d.status === 'error' || d.battery < 30)
     .flatMap(device => {
-      // Create 1-3 alerts per qualifying device
       const numAlerts = Math.floor(Math.random() * 3) + 1;
       
       return Array.from({ length: numAlerts }, (_, i) => {
         const alertTypeIndex = device.status === 'error' 
-          ? Math.floor(Math.random() * 2) // First 2 are errors
-          : 2 + Math.floor(Math.random() * 4); // Next 4 are warnings
+          ? Math.floor(Math.random() * 2)
+          : 2 + Math.floor(Math.random() * 4);
         
         const hoursAgo = Math.floor(Math.random() * 24);
         
@@ -98,16 +92,13 @@ const AlertsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState('all');
   
-  // Fetch devices
   const { data: devices, isLoading } = useQuery({
     queryKey: ['devices'],
     queryFn: getDevices,
   });
   
-  // Generate mock alerts
   const alerts = generateMockAlerts(devices);
   
-  // Filter alerts based on search and tab
   const filteredAlerts = alerts.filter(alert => {
     const matchesSearch = alert.deviceName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          alert.message.toLowerCase().includes(searchQuery.toLowerCase());
@@ -121,7 +112,6 @@ const AlertsPage: React.FC = () => {
     return matchesSearch && matchesTab;
   });
   
-  // Group alerts by day
   const groupedAlerts: { [key: string]: typeof alerts } = {};
   filteredAlerts.forEach(alert => {
     const date = new Date(alert.timestamp).toLocaleDateString();
@@ -131,99 +121,95 @@ const AlertsPage: React.FC = () => {
     groupedAlerts[date].push(alert);
   });
   
-  // Mark alert as acknowledged
   const acknowledgeAlert = (alertId: string) => {
-    // In a real app, this would update the alert in the backend
     console.log('Acknowledging alert:', alertId);
   };
   
   return (
-    <Layout>
-      <div className="space-y-6 animate-fade-in">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Alerts</h1>
-          
-          <div className="flex items-center space-x-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              asChild
-            >
-              <Link to="/settings">
-                <Settings className="h-4 w-4 mr-1" />
-                Alert Settings
-              </Link>
-            </Button>
-            
-            <Button variant="outline" size="icon">
-              <RefreshCw className="h-4 w-4" />
-              <span className="sr-only">Refresh</span>
-            </Button>
-          </div>
-        </div>
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">Alerts</h1>
         
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search alerts..."
-              className="pl-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            asChild
+          >
+            <Link to="/settings">
+              <Settings className="h-4 w-4 mr-1" />
+              Alert Settings
+            </Link>
+          </Button>
+          
+          <Button variant="outline" size="icon">
+            <RefreshCw className="h-4 w-4" />
+            <span className="sr-only">Refresh</span>
+          </Button>
         </div>
-        
-        <Tabs defaultValue="all" onValueChange={setSelectedTab}>
-          <TabsList className="grid grid-cols-4">
-            <TabsTrigger value="all">
-              All ({alerts.length})
-            </TabsTrigger>
-            <TabsTrigger value="unacknowledged">
-              Unacknowledged ({alerts.filter(a => !a.acknowledged).length})
-            </TabsTrigger>
-            <TabsTrigger value="error">
-              Error ({alerts.filter(a => a.type === 'error').length})
-            </TabsTrigger>
-            <TabsTrigger value="warning">
-              Warning ({alerts.filter(a => a.type === 'warning').length})
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="all" className="pt-4">
-            <AlertsList 
-              groupedAlerts={groupedAlerts} 
-              onAcknowledge={acknowledgeAlert} 
-              isLoading={isLoading}
-            />
-          </TabsContent>
-          
-          <TabsContent value="unacknowledged" className="pt-4">
-            <AlertsList 
-              groupedAlerts={groupedAlerts} 
-              onAcknowledge={acknowledgeAlert} 
-              isLoading={isLoading}
-            />
-          </TabsContent>
-          
-          <TabsContent value="error" className="pt-4">
-            <AlertsList 
-              groupedAlerts={groupedAlerts} 
-              onAcknowledge={acknowledgeAlert} 
-              isLoading={isLoading}
-            />
-          </TabsContent>
-          
-          <TabsContent value="warning" className="pt-4">
-            <AlertsList 
-              groupedAlerts={groupedAlerts} 
-              onAcknowledge={acknowledgeAlert} 
-              isLoading={isLoading}
-            />
-          </TabsContent>
-        </Tabs>
       </div>
-    </Layout>
+      
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search alerts..."
+            className="pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+      
+      <Tabs defaultValue="all" onValueChange={setSelectedTab}>
+        <TabsList className="grid grid-cols-4">
+          <TabsTrigger value="all">
+            All ({alerts.length})
+          </TabsTrigger>
+          <TabsTrigger value="unacknowledged">
+            Unacknowledged ({alerts.filter(a => !a.acknowledged).length})
+          </TabsTrigger>
+          <TabsTrigger value="error">
+            Error ({alerts.filter(a => a.type === 'error').length})
+          </TabsTrigger>
+          <TabsTrigger value="warning">
+            Warning ({alerts.filter(a => a.type === 'warning').length})
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="all" className="pt-4">
+          <AlertsList 
+            groupedAlerts={groupedAlerts} 
+            onAcknowledge={acknowledgeAlert} 
+            isLoading={isLoading}
+          />
+        </TabsContent>
+        
+        <TabsContent value="unacknowledged" className="pt-4">
+          <AlertsList 
+            groupedAlerts={groupedAlerts} 
+            onAcknowledge={acknowledgeAlert} 
+            isLoading={isLoading}
+          />
+        </TabsContent>
+        
+        <TabsContent value="error" className="pt-4">
+          <AlertsList 
+            groupedAlerts={groupedAlerts} 
+            onAcknowledge={acknowledgeAlert} 
+            isLoading={isLoading}
+          />
+        </TabsContent>
+        
+        <TabsContent value="warning" className="pt-4">
+          <AlertsList 
+            groupedAlerts={groupedAlerts} 
+            onAcknowledge={acknowledgeAlert} 
+            isLoading={isLoading}
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 
