@@ -11,26 +11,26 @@ const BottomNavbar: React.FC = () => {
   const { t } = useLanguage();
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-background z-30">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-background shadow-lg z-30 animate-slide-in-bottom">
       <div className="grid grid-cols-6 w-full h-16">
         {navigationItems.map((item) => (
           <Link
             key={item.path}
             to={item.path}
             className={cn(
-              "flex flex-col items-center justify-center py-1",
-              "hover:text-primary transition-colors duration-200",
+              "flex flex-col items-center justify-center py-1 px-1 transition-all duration-200",
+              "active:bg-accent/30 hover:text-primary",
               location.pathname === item.path ? "text-primary" : "text-muted-foreground"
             )}
             aria-label={t(item.nameKey)}
           >
-            <div className="flex items-center justify-center w-5 h-5">
+            <div className="flex items-center justify-center w-7 h-7 mb-0.5">
               {React.cloneElement(item.icon as React.ReactElement, { 
-                className: "h-4 w-4",
-                strokeWidth: 2.5 
+                className: "h-5 w-5",
+                strokeWidth: location.pathname === item.path ? 2.5 : 2
               })}
             </div>
-            <span className="text-[10px] mt-1 text-center px-1 truncate w-full">
+            <span className="text-[10px] font-medium text-center px-0.5 truncate w-full">
               {t(item.nameKey)}
             </span>
           </Link>

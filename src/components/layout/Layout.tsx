@@ -14,8 +14,10 @@ const Layout: React.FC = () => {
       <Navbar />
       <div className="flex flex-1 overflow-hidden">
         {!isMobile && <Sidebar />}
-        <main className="flex-1 overflow-auto p-4 md:p-6 transition-all duration-300 ease-in-out pb-20 md:pb-6">
-          <Outlet />
+        <main className="flex-1 overflow-auto p-4 md:p-6 transition-all duration-300 ease-in-out pb-24 md:pb-6">
+          <div className="animate-fade-in max-w-7xl mx-auto">
+            <Outlet />
+          </div>
         </main>
       </div>
       {isMobile && <BottomNavbar />}

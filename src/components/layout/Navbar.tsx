@@ -19,13 +19,13 @@ const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 w-full border-b backdrop-blur bg-background/90 glass transition-colors duration-300">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6">
-        <div className="flex items-center">
+        <div className="flex items-center space-x-2">
           {isMobile && (
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={() => setSidebarOpen(true)}
-              className="mr-2"
+              className="active:scale-95 transition-transform"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
@@ -42,10 +42,15 @@ const Navbar: React.FC = () => {
           </Link>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 sm:space-x-2">
           <NotificationDropdown />
           
-          <Button variant="ghost" size="icon" onClick={toggleTheme}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggleTheme}
+            className="active:scale-95 transition-transform"
+          >
             {theme === 'dark' ? (
               <Sun className="h-5 w-5 transition-transform duration-300 rotate-0 hover:rotate-90" />
             ) : (
@@ -54,10 +59,10 @@ const Navbar: React.FC = () => {
           </Button>
           
           {user ? (
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center">
               <Button
                 variant="ghost"
-                className="rounded-full overflow-hidden border h-8 w-8 p-0"
+                className="rounded-full overflow-hidden border h-9 w-9 p-0 active:scale-95 transition-transform"
                 onClick={() => navigate('/profile')}
               >
                 <span className="font-medium text-sm">
@@ -67,7 +72,7 @@ const Navbar: React.FC = () => {
             </div>
           ) : (
             <Link to="/login">
-              <Button variant="outline" size="sm">Login</Button>
+              <Button variant="outline" size="sm" className="active:scale-95 transition-transform">Login</Button>
             </Link>
           )}
         </div>

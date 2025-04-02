@@ -52,16 +52,16 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ isOpen, onClose }) => {
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" 
+        className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 animate-fade-in" 
         onClick={onClose}
         aria-hidden="true"
       />
       
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-3/4 max-w-xs bg-background shadow-xl animate-slide-in-left overflow-auto">
-        <div className="flex items-center justify-between p-4 border-b">
+      <div className="fixed inset-y-0 left-0 z-50 w-4/5 max-w-xs bg-background shadow-xl animate-slide-in-left overflow-auto">
+        <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-background/90 backdrop-blur-sm">
           <span className="text-primary font-bold text-xl">LoRaWatchdog</span>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={onClose} className="active:scale-95 transition-transform">
             <X className="h-5 w-5" />
             <span className="sr-only">Close</span>
           </Button>
@@ -73,16 +73,16 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ isOpen, onClose }) => {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex items-center py-2 px-3 rounded-md text-sm font-medium transition-colors",
-                "hover:bg-accent hover:text-accent-foreground",
+                "flex items-center py-3 px-3 rounded-md text-sm font-medium transition-colors",
+                "hover:bg-accent hover:text-accent-foreground active:bg-accent/70",
                 location.pathname === item.path ? "bg-accent text-accent-foreground" : "text-foreground",
                 "animate-fade-in"
               )}
               style={{ animationDelay: `${index * 50}ms` }}
               onClick={onClose}
             >
-              {item.icon}
-              <span className="ml-3">{t(item.nameKey)}</span>
+              {React.cloneElement(item.icon as React.ReactElement, { className: "h-5 w-5 mr-3" })}
+              <span>{t(item.nameKey)}</span>
             </Link>
           ))}
         </nav>
