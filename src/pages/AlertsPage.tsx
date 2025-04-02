@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getDevices, Device } from '@/services/deviceService';
@@ -24,6 +25,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const generateMockAlerts = (devices: Device[] | undefined) => {
   if (!devices || !devices.length) return [];
@@ -91,6 +93,7 @@ const generateMockAlerts = (devices: Device[] | undefined) => {
 const AlertsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState('all');
+  const isMobile = useIsMobile();
   
   const { data: devices, isLoading } = useQuery({
     queryKey: ['devices'],
@@ -135,6 +138,7 @@ const AlertsPage: React.FC = () => {
             variant="outline" 
             size="sm"
             asChild
+            className="hidden sm:flex"
           >
             <Link to="/settings">
               <Settings className="h-4 w-4 mr-1" />
@@ -162,20 +166,22 @@ const AlertsPage: React.FC = () => {
       </div>
       
       <Tabs defaultValue="all" onValueChange={setSelectedTab}>
-        <TabsList className="grid grid-cols-4">
-          <TabsTrigger value="all">
-            All ({alerts.length})
-          </TabsTrigger>
-          <TabsTrigger value="unacknowledged">
-            Unacknowledged ({alerts.filter(a => !a.acknowledged).length})
-          </TabsTrigger>
-          <TabsTrigger value="error">
-            Error ({alerts.filter(a => a.type === 'error').length})
-          </TabsTrigger>
-          <TabsTrigger value="warning">
-            Warning ({alerts.filter(a => a.type === 'warning').length})
-          </TabsTrigger>
-        </TabsList>
+        <div className="relative">
+          <TabsList className={`w-full ${isMobile ? 'flex' : 'grid grid-cols-4'}`}>
+            <TabsTrigger value="all" className={isMobile ? 'flex-shrink-0' : ''}>
+              All ({alerts.length})
+            </TabsTrigger>
+            <TabsTrigger value="unacknowledged" className={isMobile ? 'flex-shrink-0' : ''}>
+              {isMobile ? 'Unack' : 'Unacknowledged'} ({alerts.filter(a => !a.acknowledged).length})
+            </TabsTrigger>
+            <TabsTrigger value="error" className={isMobile ? 'flex-shrink-0' : ''}>
+              Error ({alerts.filter(a => a.type === 'error').length})
+            </TabsTrigger>
+            <TabsTrigger value="warning" className={isMobile ? 'flex-shrink-0' : ''}>
+              Warning ({alerts.filter(a => a.type === 'warning').length})
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="all" className="pt-4">
           <AlertsList 

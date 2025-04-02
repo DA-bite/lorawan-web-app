@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getDevices, Device } from '@/services/deviceService';
@@ -8,12 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Filter, RefreshCw, List, LayoutGrid, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const DevicesPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const isMobile = useIsMobile();
   
   // Fetch devices data
   const { data: devices, isLoading, refetch } = useQuery({
@@ -113,23 +116,25 @@ const DevicesPage: React.FC = () => {
       
       {/* Tabs */}
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid grid-cols-5 w-full">
-          <TabsTrigger value="all">
-            All ({devicesByStatus.all.length})
-          </TabsTrigger>
-          <TabsTrigger value="online">
-            Online ({devicesByStatus.online.length})
-          </TabsTrigger>
-          <TabsTrigger value="warning">
-            Warning ({devicesByStatus.warning.length})
-          </TabsTrigger>
-          <TabsTrigger value="error">
-            Error ({devicesByStatus.error.length})
-          </TabsTrigger>
-          <TabsTrigger value="offline">
-            Offline ({devicesByStatus.offline.length})
-          </TabsTrigger>
-        </TabsList>
+        <div className="relative">
+          <TabsList className={`w-full ${isMobile ? 'grid-cols-1 flex' : 'grid grid-cols-5'}`}>
+            <TabsTrigger value="all" className={isMobile ? 'flex-shrink-0' : ''}>
+              All ({devicesByStatus.all.length})
+            </TabsTrigger>
+            <TabsTrigger value="online" className={isMobile ? 'flex-shrink-0' : ''}>
+              Online ({devicesByStatus.online.length})
+            </TabsTrigger>
+            <TabsTrigger value="warning" className={isMobile ? 'flex-shrink-0' : ''}>
+              Warning ({devicesByStatus.warning.length})
+            </TabsTrigger>
+            <TabsTrigger value="error" className={isMobile ? 'flex-shrink-0' : ''}>
+              Error ({devicesByStatus.error.length})
+            </TabsTrigger>
+            <TabsTrigger value="offline" className={isMobile ? 'flex-shrink-0' : ''}>
+              Offline ({devicesByStatus.offline.length})
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         {(Object.keys(devicesByStatus) as Array<keyof typeof devicesByStatus>).map(status => (
           <TabsContent key={status} value={status} className="pt-4">
