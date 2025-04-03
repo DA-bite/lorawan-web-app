@@ -1,12 +1,21 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, Moon, Sun } from 'lucide-react';
+import { LogOut, Menu, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MobileSidebar from './MobileSidebar';
 import NotificationDropdown from '../notifications/NotificationDropdown';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+
 const Navbar: React.FC = () => {
   const {
     theme,
@@ -19,6 +28,16 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Failed to sign out:', error);
+    }
+  };
+
   return <header className="sticky top-0 z-40 w-full border-b backdrop-blur bg-background/90 glass transition-colors duration-300">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6">
         <div className="flex items-center space-x-2">
@@ -37,15 +56,34 @@ const Navbar: React.FC = () => {
             {theme === 'dark' ? <Sun className="h-5 w-5 transition-transform duration-300 rotate-0 hover:rotate-90" /> : <Moon className="h-5 w-5 transition-transform duration-300" />}
           </Button>
           
-          {user ? <div className="flex items-center">
-              <Button variant="ghost" className="rounded-full overflow-hidden border h-9 w-9 p-0 active:scale-95 transition-transform" onClick={() => navigate('/profile')}>
-                <span className="font-medium text-sm">
-                  {user.name?.charAt(0).toUpperCase() || 'U'}
-                </span>
-              </Button>
-            </div> : <Link to="/login">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="rounded-full overflow-hidden border h-9 w-9 p-0 active:scale-95 transition-transform">
+                  <span className="font-medium text-sm">
+                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => navigate('/profile')}>
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/settings')}>
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link to="/login">
               <Button variant="outline" size="sm" className="active:scale-95 transition-transform">Login</Button>
-            </Link>}
+            </Link>
+          )}
         </div>
       </div>
       

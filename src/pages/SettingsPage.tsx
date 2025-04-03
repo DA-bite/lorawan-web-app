@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,10 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const SettingsPage: React.FC = () => {
   const { settings, updateSettings, resetSettings, loadingSettings } = useSettings();
   const { language, setLanguage } = useLanguage();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   
   const handleSaveAppSettings = async (newSettings: any) => {
     try {
@@ -20,6 +24,16 @@ const SettingsPage: React.FC = () => {
       toast.success('Settings updated successfully');
     } catch (error) {
       toast.error('Failed to update settings');
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await logout();
+      navigate('/login');
+      toast.success('Signed out successfully');
+    } catch (error) {
+      toast.error('Failed to sign out');
     }
   };
   
@@ -242,6 +256,14 @@ const SettingsPage: React.FC = () => {
               <div className="pt-4 flex flex-col space-y-2">
                 <Button variant="outline">Change Password</Button>
                 <Button variant="outline">Update Profile</Button>
+                <Button 
+                  variant="destructive" 
+                  className="mt-4 flex items-center justify-center"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </Button>
               </div>
             </CardContent>
           </Card>
