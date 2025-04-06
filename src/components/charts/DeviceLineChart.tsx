@@ -27,6 +27,7 @@ interface DeviceLineChartProps {
   timeFormat?: string;
   yAxisLabel?: string;
   tooltipFormatter?: (value: number) => string;
+  dateFilter?: Date | null;
 }
 
 const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
@@ -36,18 +37,30 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
   colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'],
   timeFormat = 'HH:mm',
   yAxisLabel,
-  tooltipFormatter = (value) => `${value}`
+  tooltipFormatter = (value) => `${value}`,
+  dateFilter = null
 }) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
+  // Filter data by selected date if dateFilter is provided
+  const filteredData = dateFilter 
+    ? data.filter(item => {
+        const itemDate = new Date(item.timestamp);
+        return (
+          itemDate.getFullYear() === dateFilter.getFullYear() &&
+          itemDate.getMonth() === dateFilter.getMonth() &&
+          itemDate.getDate() === dateFilter.getDate()
+        );
+      })
+    : data;
+
   // Format time for display
-  const formattedData = data.map(item => ({
+  const formattedData = filteredData.map(item => ({
     ...item,
     formattedTime: format(parseISO(item.timestamp), timeFormat)
   }));
 
   // These handlers need to be updated to match the correct types
-  // The event parameter from recharts is a MouseEvent, not an index number
   const handleMouseEnter = (data: any, index: number) => {
     setActiveIndex(index);
   };
@@ -80,6 +93,20 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
     return null;
   };
 
+  // No data display
+  if (formattedData.length === 0) {
+    return (
+      <Card className="overflow-hidden h-full">
+        <CardHeader className="pb-0">
+          <CardTitle className="text-lg">{title}</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-4 flex items-center justify-center h-64">
+          <p className="text-muted-foreground">No data available for the selected date</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="overflow-hidden h-full">
       <CardHeader className="pb-0">
@@ -107,7 +134,7 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={formattedData}
-              margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+              margin={{ top: 5, right: 5, left: yAxisLabel ? 15 : 5, bottom: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
               <XAxis 
@@ -115,6 +142,14 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
                 tick={{ fontSize: 10 }}
                 stroke="var(--muted-foreground)"
                 tickLine={false}
+                interval="preserveStartEnd"
+                minTickGap={15}
+                label={{ 
+                  value: 'Time', 
+                  position: 'insideBottom', 
+                  offset: -10,
+                  style: { fontSize: 10, fill: 'var(--muted-foreground)' }
+                }}
               />
               <YAxis 
                 tick={{ fontSize: 10 }} 
@@ -125,6 +160,7 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
                   value: yAxisLabel, 
                   angle: -90, 
                   position: 'insideLeft',
+                  offset: 0,
                   style: { textAnchor: 'middle', fontSize: 10, fill: 'var(--muted-foreground)' }
                 } : undefined}
               />

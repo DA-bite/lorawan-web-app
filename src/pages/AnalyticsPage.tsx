@@ -4,30 +4,18 @@ import { getDevices } from '@/services/deviceService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
+import { Calendar as CalendarIcon } from 'lucide-react';
 import DeviceLineChart from '@/components/charts/DeviceLineChart';
 import { useIsMobile } from '@/hooks/use-mobile';
-
-const DateRangePicker: React.FC = () => {
-  return (
-    <div className="flex space-x-2">
-      <Select defaultValue="last24h">
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Select time range" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="last24h">Last 24 hours</SelectItem>
-          <SelectItem value="last7d">Last 7 days</SelectItem>
-          <SelectItem value="last30d">Last 30 days</SelectItem>
-          <SelectItem value="custom">Custom range</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
-  );
-};
 
 const AnalyticsPage: React.FC = () => {
   const isMobile = useIsMobile();
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
   const { data: devices, isLoading } = useQuery({
     queryKey: ['devices'],
@@ -36,13 +24,28 @@ const AnalyticsPage: React.FC = () => {
   
   const selectedDevice = devices?.find(d => d.id === selectedDeviceId) || devices?.[0];
   
-  const batteryData = selectedDevice ? Array.from({ length: 24 }, (_, i) => ({
-    timestamp: new Date(Date.now() - i * 3600000).toISOString(),
-    battery: Math.max(1, selectedDevice.battery - i * (Math.random() * 0.5)),
-    signal: Math.max(10, selectedDevice.signal - i * (Math.random() * 0.7))
-  })).reverse() : [];
+  const batteryData = selectedDevice ? Array.from({ length: 24 }, (_, i) => {
+    const timestamp = new Date(selectedDate);
+    timestamp.setHours(i);
+    timestamp.setMinutes(0);
+    timestamp.setSeconds(0);
+    return {
+      timestamp: timestamp.toISOString(),
+      battery: Math.max(1, selectedDevice.battery - i * (Math.random() * 0.5)),
+      signal: Math.max(10, selectedDevice.signal - i * (Math.random() * 0.7))
+    };
+  }) : [];
   
-  const sensorData = selectedDevice?.data?.history || [];
+  const sensorData = selectedDevice?.data?.history ? 
+    selectedDevice.data.history.map((item: any, index: number) => {
+      const timestamp = new Date(selectedDate);
+      timestamp.setHours(Math.floor(index * (24 / selectedDevice.data.history.length)));
+      timestamp.setMinutes((index * (24 / selectedDevice.data.history.length) % 1) * 60);
+      return {
+        ...item,
+        timestamp: timestamp.toISOString(),
+      };
+    }) : [];
   
   const sensorDataKeys = sensorData.length > 0
     ? Object.keys(sensorData[0]).filter(key => key !== 'timestamp')
@@ -52,7 +55,26 @@ const AnalyticsPage: React.FC = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
-        <DateRangePicker />
+        
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="justify-start text-left font-normal w-full sm:w-[240px]"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {format(selectedDate, 'PPP')}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={(date) => date && setSelectedDate(date)}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </div>
       
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -104,6 +126,7 @@ const AnalyticsPage: React.FC = () => {
                 colors={['#10b981', '#3b82f6']}
                 yAxisLabel="Percentage (%)"
                 tooltipFormatter={(value) => `${value.toFixed(1)}%`}
+                dateFilter={selectedDate}
               />
             </div>
             
@@ -178,6 +201,15 @@ const AnalyticsPage: React.FC = () => {
                     title="Sensor Readings"
                     data={sensorData}
                     dataKeys={sensorDataKeys}
+                    yAxisLabel={sensorDataKeys.includes('temperature') ? 'Temperature (°C)' : 
+                               sensorDataKeys.includes('humidity') ? 'Humidity (%)' : 
+                               'Value'}
+                    tooltipFormatter={(value) => 
+                      sensorDataKeys.includes('temperature') ? `${value.toFixed(1)}°C` :
+                      sensorDataKeys.includes('humidity') ? `${value.toFixed(1)}%` :
+                      `${value.toFixed(1)}`
+                    }
+                    dateFilter={selectedDate}
                   />
                 </div>
                 

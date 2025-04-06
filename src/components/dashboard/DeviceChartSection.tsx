@@ -14,16 +14,19 @@ interface DeviceChartSectionProps {
 
 export const DeviceChartSection: React.FC<DeviceChartSectionProps> = ({ devices }) => {
   const isMobile = useIsMobile();
+  const today = new Date();
   
-  // Generate demo data for single device over time
+  // Generate demo data for single device for today
   const singleDeviceData = [];
   if (devices && devices.length > 0) {
     const device = devices[0];
     for (let i = 0; i < 24; i++) {
-      const date = new Date();
-      date.setHours(date.getHours() - i);
+      const date = new Date(today);
+      date.setHours(i);
+      date.setMinutes(0);
+      date.setSeconds(0);
       
-      singleDeviceData.unshift({
+      singleDeviceData.push({
         timestamp: date.toISOString(),
         temperature: 20 + Math.random() * 10,
         humidity: 40 + Math.random() * 20,
@@ -36,7 +39,7 @@ export const DeviceChartSection: React.FC<DeviceChartSectionProps> = ({ devices 
       <Card className="md:col-span-2">
         <CardHeader className="pb-0">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Recent Data</CardTitle>
+            <CardTitle className="text-lg">Today's Data</CardTitle>
             <Link to="/analytics">
               <Button variant="ghost" size="sm" className="h-7 text-xs">
                 View Analytics
@@ -52,8 +55,9 @@ export const DeviceChartSection: React.FC<DeviceChartSectionProps> = ({ devices 
                 title="Temperature & Humidity"
                 data={singleDeviceData}
                 dataKeys={['temperature', 'humidity']}
-                yAxisLabel=""
+                yAxisLabel="Value (°C / %)"
                 tooltipFormatter={(value) => `${value.toFixed(1)}`}
+                dateFilter={today}
               />
             )}
           </div>

@@ -128,6 +128,30 @@ const DeviceDetailPage: React.FC = () => {
     error: 'Error'
   }[device.status];
   
+  const getYAxisLabel = () => {
+    if (!device.data?.history || device.data.history.length === 0) return '';
+    
+    const keys = Object.keys(device.data.history[0]).filter(key => key !== 'timestamp');
+    if (keys.includes('temperature')) return 'Temperature (°C)';
+    if (keys.includes('humidity')) return 'Humidity (%)';
+    return '';
+  };
+  
+  const getTooltipFormatter = () => {
+    if (!device.data?.history || device.data.history.length === 0) {
+      return (value: number) => `${value}`;
+    }
+    
+    const keys = Object.keys(device.data.history[0]).filter(key => key !== 'timestamp');
+    if (keys.includes('temperature')) {
+      return (value: number) => `${value.toFixed(1)}°C`;
+    }
+    if (keys.includes('humidity')) {
+      return (value: number) => `${value.toFixed(1)}%`;
+    }
+    return (value: number) => `${value.toFixed(1)}`;
+  };
+  
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
@@ -326,6 +350,9 @@ const DeviceDetailPage: React.FC = () => {
                 title="Historical Data"
                 data={device.data.history}
                 dataKeys={Object.keys(device.data.history[0]).filter(key => key !== 'timestamp')}
+                yAxisLabel={getYAxisLabel()}
+                tooltipFormatter={getTooltipFormatter()}
+                timeFormat="HH:mm"
               />
             </div>
           )}
