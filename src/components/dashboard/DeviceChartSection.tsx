@@ -34,6 +34,8 @@ export const DeviceChartSection: React.FC<DeviceChartSectionProps> = ({ devices 
         timestamp: date.toISOString(),
         temperature: 20 + Math.random() * 10,
         humidity: 40 + Math.random() * 20,
+        battery: 75 + Math.random() * 25,
+        signal: 8 + Math.random() * 2,
       });
     }
   }
@@ -76,10 +78,10 @@ export const DeviceChartSection: React.FC<DeviceChartSectionProps> = ({ devices 
           <div className={isMobile ? "w-full overflow-hidden" : ""}>
             {singleDeviceData.length > 0 ? (
               <DeviceLineChart
-                title="Temperature & Humidity"
+                title="Device Metrics"
                 data={singleDeviceData}
-                dataKeys={['temperature', 'humidity']}
-                yAxisLabel="Value (°C / %)"
+                dataKeys={['temperature', 'humidity', 'battery', 'signal']}
+                yAxisLabel="Value"
                 tooltipFormatter={(value) => `${value.toFixed(1)}`}
                 dateFilter={selectedDate}
               />

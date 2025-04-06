@@ -12,6 +12,8 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, parseISO } from 'date-fns';
 
 interface DataPoint {
@@ -41,6 +43,8 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
   dateFilter = null
 }) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [selectedDataKey, setSelectedDataKey] = useState<string>(dataKeys[0]);
+  const isMobile = window.innerWidth < 768;
 
   // Filter data by selected date if dateFilter is provided
   const filteredData = dateFilter 
@@ -60,6 +64,30 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
     formattedTime: format(parseISO(item.timestamp), timeFormat)
   }));
 
+  // Generate Y-axis label based on selected data key
+  const getYAxisLabelForKey = (key: string) => {
+    if (key.includes('temperature')) return 'Temperature (°C)';
+    if (key.includes('humidity')) return 'Humidity (%)';
+    if (key.includes('battery')) return 'Battery (%)';
+    if (key.includes('signal')) return 'Signal Strength';
+    return yAxisLabel || '';
+  };
+
+  // Get tooltip formatter based on selected data key
+  const getTooltipFormatterForKey = (key: string) => {
+    if (key.includes('temperature')) return (value: number) => `${value.toFixed(1)}°C`;
+    if (key.includes('humidity')) return (value: number) => `${value.toFixed(1)}%`;
+    if (key.includes('battery')) return (value: number) => `${value.toFixed(0)}%`;
+    if (key.includes('signal')) return (value: number) => `${value.toFixed(0)}`;
+    return tooltipFormatter;
+  };
+
+  // Get the color for the selected data key
+  const getColorForKey = (key: string) => {
+    const index = dataKeys.indexOf(key);
+    return colors[index % colors.length];
+  };
+
   // These handlers need to be updated to match the correct types
   const handleMouseEnter = (data: any, index: number) => {
     setActiveIndex(index);
@@ -67,6 +95,11 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
 
   const handleMouseLeave = () => {
     setActiveIndex(null);
+  };
+
+  // Handle data key selection
+  const handleDataKeyChange = (value: string) => {
+    setSelectedDataKey(value);
   };
 
   // Custom tooltip
@@ -82,8 +115,8 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
                   className="h-2 w-2 rounded-full mr-2" 
                   style={{ backgroundColor: entry.color }}
                 />
-                <span className="mr-2 text-muted-foreground">{entry.name}:</span>
-                <span className="font-medium">{tooltipFormatter(entry.value)}</span>
+                <span className="mr-2 text-muted-foreground capitalize">{entry.name}:</span>
+                <span className="font-medium">{getTooltipFormatterForKey(entry.dataKey)(entry.value)}</span>
               </div>
             ))}
           </div>
@@ -110,23 +143,58 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
   return (
     <Card className="overflow-hidden h-full">
       <CardHeader className="pb-0">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{title}</CardTitle>
-          <div className="flex space-x-2">
-            {dataKeys.map((key, index) => (
-              <Badge 
-                key={key} 
-                variant="outline"
-                className="text-xs"
-                style={{ 
-                  borderColor: colors[index % colors.length],
-                  color: colors[index % colors.length]
-                }}
-              >
-                {key}
-              </Badge>
-            ))}
+        <div className="flex flex-col gap-3">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-lg">{title}</CardTitle>
           </div>
+          
+          {dataKeys.length > 1 && (
+            isMobile ? (
+              <Select 
+                value={selectedDataKey}
+                onValueChange={handleDataKeyChange}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select data type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {dataKeys.map(key => (
+                    <SelectItem key={key} value={key}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="h-2 w-2 rounded-full" 
+                          style={{ backgroundColor: getColorForKey(key) }}
+                        />
+                        <span className="capitalize">{key}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <ToggleGroup 
+                type="single" 
+                value={selectedDataKey}
+                onValueChange={(value) => value && handleDataKeyChange(value)}
+                className="justify-start"
+              >
+                {dataKeys.map((key, index) => (
+                  <ToggleGroupItem 
+                    key={key} 
+                    value={key}
+                    className="px-3 py-1 text-xs font-medium capitalize"
+                    style={{ 
+                      borderColor: colors[index % colors.length],
+                      color: selectedDataKey === key ? 'white' : colors[index % colors.length],
+                      backgroundColor: selectedDataKey === key ? colors[index % colors.length] : 'transparent'
+                    }}
+                  >
+                    {key}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            )
+          )}
         </div>
       </CardHeader>
       <CardContent className="pt-4">
@@ -134,7 +202,7 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={formattedData}
-              margin={{ top: 5, right: 5, left: yAxisLabel ? 15 : 5, bottom: 20 }}
+              margin={{ top: 5, right: 5, left: 15, bottom: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
               <XAxis 
@@ -156,32 +224,27 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
                 stroke="var(--muted-foreground)"
                 tickLine={false}
                 axisLine={false}
-                label={yAxisLabel ? { 
-                  value: yAxisLabel, 
+                label={{ 
+                  value: getYAxisLabelForKey(selectedDataKey), 
                   angle: -90, 
                   position: 'insideLeft',
                   offset: 0,
                   style: { textAnchor: 'middle', fontSize: 10, fill: 'var(--muted-foreground)' }
-                } : undefined}
+                }}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Legend verticalAlign="bottom" height={36} />
-              {dataKeys.map((key, index) => (
-                <Line
-                  key={key}
-                  type="monotone"
-                  dataKey={key}
-                  name={key}
-                  stroke={colors[index % colors.length]}
-                  strokeWidth={2}
-                  dot={{ r: 2 }}
-                  activeDot={{ r: 5, strokeWidth: 1 }}
-                  animationDuration={1500}
-                  // Fixed: correct event handler typings
-                  onMouseEnter={() => handleMouseEnter(null, index)}
-                  onMouseLeave={handleMouseLeave}
-                />
-              ))}
+              <Line
+                type="monotone"
+                dataKey={selectedDataKey}
+                name={selectedDataKey}
+                stroke={getColorForKey(selectedDataKey)}
+                strokeWidth={2}
+                dot={{ r: 2 }}
+                activeDot={{ r: 5, strokeWidth: 1 }}
+                animationDuration={1500}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
