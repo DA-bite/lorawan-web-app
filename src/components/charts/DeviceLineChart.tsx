@@ -7,14 +7,13 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  Legend
+  ResponsiveContainer
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { format, parseISO } from 'date-fns';
+import CustomTooltip from './components/CustomTooltip';
+import ChartControls from './components/ChartControls';
+import NoDataDisplay from './components/NoDataDisplay';
+import { getYAxisLabelForKey, getTooltipFormatterForKey, formatChartData } from './utils/chartUtils';
 
 interface DataPoint {
   timestamp: string;
@@ -46,40 +45,12 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
   const [selectedDataKey, setSelectedDataKey] = useState<string>(dataKeys[0]);
   const isMobile = window.innerWidth < 768;
 
-  // Filter data by selected date if dateFilter is provided
-  const filteredData = dateFilter 
-    ? data.filter(item => {
-        const itemDate = new Date(item.timestamp);
-        return (
-          itemDate.getFullYear() === dateFilter.getFullYear() &&
-          itemDate.getMonth() === dateFilter.getMonth() &&
-          itemDate.getDate() === dateFilter.getDate()
-        );
-      })
-    : data;
+  // Format data for display
+  const formattedData = formatChartData(data, timeFormat, dateFilter);
 
-  // Format time for display
-  const formattedData = filteredData.map(item => ({
-    ...item,
-    formattedTime: format(parseISO(item.timestamp), timeFormat)
-  }));
-
-  // Generate Y-axis label based on selected data key
-  const getYAxisLabelForKey = (key: string) => {
-    if (key.includes('temperature')) return 'Temperature (°C)';
-    if (key.includes('humidity')) return 'Humidity (%)';
-    if (key.includes('battery')) return 'Battery (%)';
-    if (key.includes('signal')) return 'Signal Strength';
-    return yAxisLabel || '';
-  };
-
-  // Get tooltip formatter based on selected data key
-  const getTooltipFormatterForKey = (key: string) => {
-    if (key.includes('temperature')) return (value: number) => `${value.toFixed(1)}°C`;
-    if (key.includes('humidity')) return (value: number) => `${value.toFixed(1)}%`;
-    if (key.includes('battery')) return (value: number) => `${value.toFixed(0)}%`;
-    if (key.includes('signal')) return (value: number) => `${value.toFixed(0)}`;
-    return tooltipFormatter;
+  // Handle data key selection
+  const handleDataKeyChange = (value: string) => {
+    setSelectedDataKey(value);
   };
 
   // Get the color for the selected data key
@@ -98,47 +69,14 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
     setActiveIndex(null);
   };
 
-  // Handle data key selection
-  const handleDataKeyChange = (value: string) => {
-    setSelectedDataKey(value);
-  };
-
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-background/90 backdrop-blur-sm shadow-lg rounded-md p-3 border border-border text-sm">
-          <p className="font-medium mb-1">{label}</p>
-          <div className="space-y-1">
-            {payload.map((entry: any, index: number) => (
-              <div key={`tooltip-${index}`} className="flex items-center">
-                <div 
-                  className="h-2 w-2 rounded-full mr-2" 
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className="mr-2 text-muted-foreground capitalize">{entry.name}:</span>
-                <span className="font-medium">{getTooltipFormatterForKey(entry.dataKey)(entry.value)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    return null;
+  // Get tooltip formatter function for a data key
+  const getFormatterFunction = (dataKey: string, value: number) => {
+    return getTooltipFormatterForKey(dataKey)(value);
   };
 
   // No data display
   if (formattedData.length === 0) {
-    return (
-      <Card className="overflow-hidden h-full">
-        <CardHeader className="pb-0">
-          <CardTitle className="text-lg">{title}</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-4 flex items-center justify-center h-64">
-          <p className="text-muted-foreground">No data available for the selected date</p>
-        </CardContent>
-      </Card>
-    );
+    return <NoDataDisplay title={title} />;
   }
 
   return (
@@ -149,53 +87,13 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
             <CardTitle className="text-lg">{title}</CardTitle>
           </div>
           
-          {dataKeys.length > 1 && (
-            isMobile ? (
-              <Select 
-                value={selectedDataKey}
-                onValueChange={handleDataKeyChange}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select data type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {dataKeys.map(key => (
-                    <SelectItem key={key} value={key}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="h-2 w-2 rounded-full" 
-                          style={{ backgroundColor: getColorForKey(key) }}
-                        />
-                        <span className="capitalize">{key}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <ToggleGroup 
-                type="single" 
-                value={selectedDataKey}
-                onValueChange={(value) => value && handleDataKeyChange(value)}
-                className="justify-start"
-              >
-                {dataKeys.map((key, index) => (
-                  <ToggleGroupItem 
-                    key={key} 
-                    value={key}
-                    className="px-3 py-1 text-xs font-medium capitalize"
-                    style={{ 
-                      borderColor: colors[index % colors.length],
-                      color: selectedDataKey === key ? 'white' : colors[index % colors.length],
-                      backgroundColor: selectedDataKey === key ? colors[index % colors.length] : 'transparent'
-                    }}
-                  >
-                    {key}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            )
-          )}
+          <ChartControls 
+            dataKeys={dataKeys}
+            selectedDataKey={selectedDataKey}
+            onDataKeyChange={handleDataKeyChange}
+            colors={colors}
+            isMobile={isMobile}
+          />
         </div>
       </CardHeader>
       <CardContent className="pt-4">
@@ -226,14 +124,14 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
                 tickLine={false}
                 axisLine={false}
                 label={{ 
-                  value: getYAxisLabelForKey(selectedDataKey), 
+                  value: getYAxisLabelForKey(selectedDataKey) || yAxisLabel || '', 
                   angle: -90, 
                   position: 'insideLeft',
                   offset: 0,
                   style: { textAnchor: 'middle', fontSize: 10, fill: 'var(--muted-foreground)' }
                 }}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip formatterFunction={getFormatterFunction} />} />
               <Line
                 type="monotone"
                 dataKey={selectedDataKey}
