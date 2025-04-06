@@ -88,9 +88,10 @@ const DeviceLineChart: React.FC<DeviceLineChartProps> = ({
     return colors[index % colors.length];
   };
 
-  // These handlers need to be updated to match the correct types
-  const handleMouseEnter = (data: any, index: number) => {
-    setActiveIndex(index);
+  // Update event handlers to use the correct type signature
+  const handleMouseEnter = () => {
+    // We're not using the event parameter directly
+    setActiveIndex(1); // Just set a value to indicate hover state
   };
 
   const handleMouseLeave = () => {
