@@ -1,3 +1,4 @@
+
 export const russianTranslations = {
   // Navigation
   'dashboard': 'Панель управления',
@@ -7,6 +8,7 @@ export const russianTranslations = {
   'alerts': 'Оповещения',
   'settings': 'Настройки',
   'register_device': 'Зарегистрировать устройство',
+  'open_menu': 'Открыть меню',
   
   // Common actions
   'save': 'Сохранить',
@@ -19,11 +21,17 @@ export const russianTranslations = {
   'sign_in': 'Войти',
   'register': 'Зарегистрироваться',
   'view_analytics': 'Просмотр аналитики',
+  'profile': 'Профиль',
   
   // Notifications
   'notifications': 'Уведомления',
   'mark_all_as_read': 'Отметить все как прочитанные',
   'no_notifications': 'Нет уведомлений',
+  
+  // Auth
+  'sign_in_to_monitor': 'Войдите, чтобы отслеживать свои устройства',
+  'dont_have_account': 'У вас нет учетной записи?',
+  'create_account': 'Создать учетную запись',
   
   // Settings
   'profile_information': 'Информация профиля',
@@ -77,9 +85,39 @@ export const russianTranslations = {
   // Account
   'account': 'Аккаунт',
   'appearance': 'Внешний вид',
-
-  // Auth
-  'sign_in_to_monitor': 'Войдите, чтобы отслеживать свои устройства',
-  'dont_have_account': 'У вас нет учетной записи?',
-  'create_account': 'Создать учетную запись',
+  
+  // Date formats
+  'date_format': 'd MMM yyyy',
+  'time_format_12h': 'h:mm a',
+  'time_format_24h': 'HH:mm',
+  'date_time_format': 'd MMM yyyy HH:mm',
+  
+  // Device settings
+  'device_settings': 'Настройки устройства',
+  'device_name': 'Имя устройства',
+  'location': 'Местоположение',
+  'update_location': 'Обновить местоположение',
+  'alert_thresholds': 'Пороги оповещений',
+  'thresholds_description': 'Установите пороговые значения для получения оповещений от этого устройства',
+  'low_battery_warning': 'Предупреждение о низком заряде батареи (%)',
+  'low_signal_warning': 'Предупреждение о слабом сигнале (%)',
+  'high_temperature_alert': 'Оповещение о высокой температуре (°C)',
+  'save_thresholds': 'Сохранить пороговые значения',
+  'danger_zone': 'Опасная зона',
+  'irreversible_actions': 'Эти действия необратимы',
+  'factory_reset': 'Сброс к заводским настройкам',
+  'delete_device': 'Удалить устройство',
+  'confirm_delete': 'Подтвердить удаление',
+  
+  // General
+  'loading': 'Загрузка...',
+  'reset_to_defaults': 'Сбросить настройки',
+  'general': 'Общие',
+  'notifications_settings': 'Уведомления',
+  'account_settings': 'Учетная запись',
+  'enable_notifications': 'Включить уведомления',
+  'change_password': 'Изменить пароль',
+  'update_profile': 'Обновить профиль',
+  'latitude': 'Широта',
+  'longitude': 'Долгота',
 };

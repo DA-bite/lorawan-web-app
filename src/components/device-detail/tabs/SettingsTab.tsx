@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Device } from '@/services/device';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SettingsTabProps {
   device: Device;
@@ -19,78 +20,80 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
   isConfirmingDelete,
   onDeleteDevice
 }) => {
+  const { t } = useLanguage();
+
   return (
     <div className="pt-4">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <Settings2 className="h-5 w-5 mr-2" />
-            Device Settings
+            {t('device_settings')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Device Name</label>
+              <label className="text-sm font-medium">{t('device_name')}</label>
               <div className="flex space-x-2">
                 <Input defaultValue={device.name} />
-                <Button>Save</Button>
+                <Button>{t('save')}</Button>
               </div>
             </div>
             
             <Separator />
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">Location</label>
+              <label className="text-sm font-medium">{t('location')}</label>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Latitude</p>
+                  <p className="text-xs text-muted-foreground">{t('latitude')}</p>
                   <Input defaultValue={device.location.lat.toString()} />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Longitude</p>
+                  <p className="text-xs text-muted-foreground">{t('longitude')}</p>
                   <Input defaultValue={device.location.lng.toString()} />
                 </div>
               </div>
-              <Button className="mt-2">Update Location</Button>
+              <Button className="mt-2">{t('update_location')}</Button>
             </div>
             
             <Separator />
             
             <div className="space-y-2">
-              <h3 className="text-sm font-medium">Alert Thresholds</h3>
+              <h3 className="text-sm font-medium">{t('alert_thresholds')}</h3>
               <p className="text-xs text-muted-foreground">
-                Set thresholds for when to receive alerts from this device
+                {t('thresholds_description')}
               </p>
               
               <div className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <label className="text-xs">Low Battery Warning (%)</label>
+                  <label className="text-xs">{t('low_battery_warning')}</label>
                   <Input type="number" defaultValue="20" min="0" max="100" />
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-xs">Low Signal Warning (%)</label>
+                  <label className="text-xs">{t('low_signal_warning')}</label>
                   <Input type="number" defaultValue="30" min="0" max="100" />
                 </div>
                 
                 {device.type === 'sensor' && device.data.temperature !== undefined && (
                   <div className="space-y-2">
-                    <label className="text-xs">High Temperature Alert (°C)</label>
+                    <label className="text-xs">{t('high_temperature_alert')}</label>
                     <Input type="number" defaultValue="30" />
                   </div>
                 )}
               </div>
               
-              <Button className="mt-2">Save Thresholds</Button>
+              <Button className="mt-2">{t('save_thresholds')}</Button>
             </div>
             
             <Separator />
             
             <div className="space-y-2">
-              <h3 className="font-medium text-destructive">Danger Zone</h3>
+              <h3 className="font-medium text-destructive">{t('danger_zone')}</h3>
               <p className="text-xs text-muted-foreground">
-                These actions are irreversible
+                {t('irreversible_actions')}
               </p>
               
               <div className="flex space-x-2 mt-4">
@@ -98,14 +101,14 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                   variant="outline"
                   onClick={() => toast.info('Factory reset command sent to device')}
                 >
-                  Factory Reset
+                  {t('factory_reset')}
                 </Button>
                 
                 <Button 
                   variant="destructive"
                   onClick={onDeleteDevice}
                 >
-                  {isConfirmingDelete ? 'Confirm Delete' : 'Delete Device'}
+                  {isConfirmingDelete ? t('confirm_delete') : t('delete_device')}
                 </Button>
               </div>
             </div>

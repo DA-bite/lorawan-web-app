@@ -1,3 +1,4 @@
+
 export const englishTranslations = {
   // Navigation
   'dashboard': 'Dashboard',
@@ -7,6 +8,7 @@ export const englishTranslations = {
   'alerts': 'Alerts',
   'settings': 'Settings',
   'register_device': 'Register Device',
+  'open_menu': 'Open Menu',
   
   // Common actions
   'save': 'Save',
@@ -19,6 +21,7 @@ export const englishTranslations = {
   'sign_in': 'Sign In',
   'register': 'Register',
   'view_analytics': 'View Analytics',
+  'profile': 'Profile',
   
   // Notifications
   'notifications': 'Notifications',
@@ -82,4 +85,39 @@ export const englishTranslations = {
   // Account
   'account': 'Account',
   'appearance': 'Appearance',
+  
+  // Date formats
+  'date_format': 'MMM d, yyyy',
+  'time_format_12h': 'h:mm a',
+  'time_format_24h': 'HH:mm',
+  'date_time_format': 'MMM d, yyyy h:mm a',
+  
+  // Device settings
+  'device_settings': 'Device Settings',
+  'device_name': 'Device Name',
+  'location': 'Location',
+  'update_location': 'Update Location',
+  'alert_thresholds': 'Alert Thresholds',
+  'thresholds_description': 'Set thresholds for when to receive alerts from this device',
+  'low_battery_warning': 'Low Battery Warning (%)',
+  'low_signal_warning': 'Low Signal Warning (%)',
+  'high_temperature_alert': 'High Temperature Alert (°C)',
+  'save_thresholds': 'Save Thresholds',
+  'danger_zone': 'Danger Zone',
+  'irreversible_actions': 'These actions are irreversible',
+  'factory_reset': 'Factory Reset',
+  'delete_device': 'Delete Device',
+  'confirm_delete': 'Confirm Delete',
+  
+  // General
+  'loading': 'Loading...',
+  'reset_to_defaults': 'Reset to Defaults',
+  'general': 'General',
+  'notifications_settings': 'Notifications',
+  'account_settings': 'Account',
+  'enable_notifications': 'Enable Notifications',
+  'change_password': 'Change Password',
+  'update_profile': 'Update Profile',
+  'latitude': 'Latitude',
+  'longitude': 'Longitude',
 };
