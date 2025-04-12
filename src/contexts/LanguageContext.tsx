@@ -1,5 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { format, formatDistanceToNow as formatDistanceToNowFn } from 'date-fns';
+import { ru, enUS } from 'date-fns/locale';
 import { russianTranslations, englishTranslations } from '@/translations';
 
 type Language = 'english' | 'russian';
@@ -13,6 +15,11 @@ interface LanguageContextType {
   translations: TranslationsType;
   setLanguage: (language: Language) => void;
   t: (key: string) => string;
+  formatDate: (date: Date | number, formatStr?: string) => string;
+  formatTime: (date: Date | number) => string;
+  formatDateTime: (date: Date | number) => string;
+  formatNumber: (num: number, options?: Intl.NumberFormatOptions) => string;
+  formatDistanceToNow: (date: Date | number) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -32,6 +39,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     setTranslations(language === 'english' ? englishTranslations : russianTranslations);
     localStorage.setItem('language', language);
+    
+    // Update document lang attribute for accessibility
+    document.documentElement.lang = language === 'english' ? 'en' : 'ru';
   }, [language]);
 
   // Translation function
@@ -39,8 +49,53 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return translations[key] || key;
   };
 
+  // Date formatting functions that respect language preferences
+  const formatDate = (date: Date | number, formatStr?: string): string => {
+    const dateFormat = formatStr || t('date_format');
+    return format(date, dateFormat, {
+      locale: language === 'english' ? enUS : ru
+    });
+  };
+
+  const formatTime = (date: Date | number): string => {
+    const timeFormat = t(t('time_format') === '24h' ? 'time_format_24h' : 'time_format_12h');
+    return format(date, timeFormat, {
+      locale: language === 'english' ? enUS : ru
+    });
+  };
+
+  const formatDateTime = (date: Date | number): string => {
+    return format(date, t('date_time_format'), {
+      locale: language === 'english' ? enUS : ru
+    });
+  };
+
+  // Number formatting with proper locale settings
+  const formatNumber = (num: number, options?: Intl.NumberFormatOptions): string => {
+    const locale = language === 'english' ? 'en-US' : 'ru-RU';
+    return new Intl.NumberFormat(locale, options).format(num);
+  };
+
+  // Relative time formatting (e.g., "2 days ago")
+  const formatDistanceToNow = (date: Date | number): string => {
+    return formatDistanceToNowFn(date, {
+      addSuffix: true,
+      locale: language === 'english' ? enUS : ru
+    });
+  };
+
   return (
-    <LanguageContext.Provider value={{ language, translations, setLanguage, t }}>
+    <LanguageContext.Provider value={{ 
+      language, 
+      translations, 
+      setLanguage, 
+      t,
+      formatDate,
+      formatTime,
+      formatDateTime,
+      formatNumber,
+      formatDistanceToNow
+    }}>
       {children}
     </LanguageContext.Provider>
   );
