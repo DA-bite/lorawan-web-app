@@ -33,9 +33,7 @@ const Navbar: React.FC = () => {
         <div className="flex items-center space-x-2">
           {isMobile}
           <Link to="/" className="flex items-center space-x-2">
-            <span className="text-primary font-bold text-xl animate-fade-in">
-              LoRaWatchdog
-            </span>
+            
           </Link>
         </div>
         
