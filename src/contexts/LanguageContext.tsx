@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { format, formatDistanceToNow as formatDistanceToNowFn } from 'date-fns';
-import * as dateFnsLocales from 'date-fns/locale';
+import { enUS } from 'date-fns/locale/enUS';
+import { ru } from 'date-fns/locale/ru';
 import { russianTranslations, englishTranslations } from '@/translations';
 
 type Language = 'english' | 'russian';
@@ -52,20 +53,20 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const formatDate = (date: Date | number, formatStr?: string): string => {
     const dateFormat = formatStr || t('date_format');
     return format(date, dateFormat, {
-      locale: language === 'english' ? dateFnsLocales.enUS : dateFnsLocales.ru
+      locale: language === 'english' ? enUS : ru
     });
   };
 
   const formatTime = (date: Date | number): string => {
     const timeFormat = t(t('time_format') === '24h' ? 'time_format_24h' : 'time_format_12h');
     return format(date, timeFormat, {
-      locale: language === 'english' ? dateFnsLocales.enUS : dateFnsLocales.ru
+      locale: language === 'english' ? enUS : ru
     });
   };
 
   const formatDateTime = (date: Date | number): string => {
     return format(date, t('date_time_format'), {
-      locale: language === 'english' ? dateFnsLocales.enUS : dateFnsLocales.ru
+      locale: language === 'english' ? enUS : ru
     });
   };
 
@@ -79,7 +80,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const formatDistanceToNow = (date: Date | number): string => {
     return formatDistanceToNowFn(date, {
       addSuffix: true,
-      locale: language === 'english' ? dateFnsLocales.enUS : dateFnsLocales.ru
+      locale: language === 'english' ? enUS : ru
     });
   };
 
