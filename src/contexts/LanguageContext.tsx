@@ -32,6 +32,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     setTranslations(language === 'english' ? englishTranslations : russianTranslations);
     localStorage.setItem('language', language);
+    // Update document lang attribute for accessibility
+    document.documentElement.lang = language === 'english' ? 'en' : 'ru';
   }, [language]);
 
   // Translation function

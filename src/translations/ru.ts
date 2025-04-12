@@ -1,4 +1,3 @@
-
 export const russianTranslations = {
   // Navigation
   'dashboard': 'Панель управления',
@@ -19,6 +18,7 @@ export const russianTranslations = {
   'sign_out': 'Выйти',
   'sign_in': 'Войти',
   'register': 'Зарегистрироваться',
+  'view_analytics': 'Просмотр аналитики',
   
   // Notifications
   'notifications': 'Уведомления',
@@ -77,4 +77,9 @@ export const russianTranslations = {
   // Account
   'account': 'Аккаунт',
   'appearance': 'Внешний вид',
+
+  // Auth
+  'sign_in_to_monitor': 'Войдите, чтобы отслеживать свои устройства',
+  'dont_have_account': 'У вас нет учетной записи?',
+  'create_account': 'Создать учетную запись',
 };

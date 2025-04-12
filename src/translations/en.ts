@@ -1,4 +1,3 @@
-
 export const englishTranslations = {
   // Navigation
   'dashboard': 'Dashboard',
@@ -19,11 +18,17 @@ export const englishTranslations = {
   'sign_out': 'Sign Out',
   'sign_in': 'Sign In',
   'register': 'Register',
+  'view_analytics': 'View Analytics',
   
   // Notifications
   'notifications': 'Notifications',
   'mark_all_as_read': 'Mark all as read',
   'no_notifications': 'No notifications',
+  
+  // Auth
+  'sign_in_to_monitor': 'Sign in to monitor your devices',
+  'dont_have_account': 'Don\'t have an account?',
+  'create_account': 'Create an account',
   
   // Settings
   'profile_information': 'Profile Information',
