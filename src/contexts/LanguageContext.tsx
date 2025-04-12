@@ -1,7 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { format, formatDistanceToNow as formatDistanceToNowFn } from 'date-fns';
-import { ru, enUS } from 'date-fns/locale';
+import { ru } from 'date-fns/locale/ru';
+import { enUS } from 'date-fns/locale/en-US';
 import { russianTranslations, englishTranslations } from '@/translations';
 
 type Language = 'english' | 'russian';
