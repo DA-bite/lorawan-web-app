@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Settings2 } from 'lucide-react';
+import { Settings2, Trash2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
@@ -108,7 +108,8 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                   variant="destructive"
                   onClick={onDeleteDevice}
                 >
-                  {isConfirmingDelete ? t('confirm_delete') : t('delete_device')}
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  {t('delete_device')}
                 </Button>
               </div>
             </div>

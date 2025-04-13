@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getDeviceById, sendCommand, deleteDevice } from '@/services/deviceService';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 
 // Imported components
 import DeviceHeader from '@/components/device-detail/DeviceHeader';
@@ -43,16 +44,14 @@ const DeviceDetailPage: React.FC = () => {
   const handleDeleteDevice = async () => {
     if (!device) return;
     
-    if (isConfirmingDelete) {
-      try {
-        await deleteDevice(device.id);
-        navigate('/devices');
-      } catch (error) {
-        console.error('Failed to delete device:', error);
-      }
-    } else {
-      setIsConfirmingDelete(true);
-      setTimeout(() => setIsConfirmingDelete(false), 3000);
+    try {
+      await deleteDevice(device.id);
+      toast.success(`${device.name} has been deleted successfully`);
+      navigate('/devices');
+    } catch (error) {
+      console.error('Failed to delete device:', error);
+      toast.error('Failed to delete device');
+      setIsConfirmingDelete(false);
     }
   };
   
@@ -104,7 +103,7 @@ const DeviceDetailPage: React.FC = () => {
           <SettingsTab
             device={device}
             isConfirmingDelete={isConfirmingDelete}
-            onDeleteDevice={handleDeleteDevice}
+            onDeleteDevice={() => setIsConfirmingDelete(true)}
           />
         </TabsContent>
       </Tabs>

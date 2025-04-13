@@ -1,9 +1,19 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, RefreshCw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Device } from '@/services/device';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface DeviceHeaderProps {
   device: Device;
@@ -53,11 +63,29 @@ const DeviceHeader: React.FC<DeviceHeaderProps> = ({
         <Button 
           variant="destructive" 
           size="sm"
-          onClick={onDelete}
+          onClick={() => setIsConfirmingDelete(true)}
         >
           <Trash2 className="h-4 w-4 mr-1" />
-          {isConfirmingDelete ? 'Confirm' : 'Delete'}
+          Delete Device
         </Button>
+
+        <AlertDialog open={isConfirmingDelete} onOpenChange={setIsConfirmingDelete}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete the device "{device.name}" and all associated data.
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={onDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
