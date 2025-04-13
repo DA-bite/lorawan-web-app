@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Settings2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -8,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Device } from '@/services/device';
 import { useLanguage } from '@/contexts/LanguageContext';
+import LocationSelector from '@/components/map/LocationSelector';
 
 interface SettingsTabProps {
   device: Device;
@@ -21,6 +21,21 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
   onDeleteDevice
 }) => {
   const { t } = useLanguage();
+  const [showLocationMap, setShowLocationMap] = useState(false);
+  const [deviceLocation, setDeviceLocation] = useState(device.location);
+
+  const handleLocationUpdate = () => {
+    setShowLocationMap(!showLocationMap);
+  };
+
+  const handleLocationChange = (location: { lat: number; lng: number }) => {
+    setDeviceLocation(location);
+  };
+
+  const saveLocation = () => {
+    toast.success(t('location_updated'));
+    setShowLocationMap(false);
+  };
 
   return (
     <div className="pt-4">
@@ -45,17 +60,39 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
             
             <div className="space-y-2">
               <label className="text-sm font-medium">{t('location')}</label>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">{t('latitude')}</p>
-                  <Input defaultValue={device.location.lat.toString()} />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">{t('longitude')}</p>
-                  <Input defaultValue={device.location.lng.toString()} />
-                </div>
-              </div>
-              <Button className="mt-2">{t('update_location')}</Button>
+              
+              {!showLocationMap ? (
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">{t('latitude')}</p>
+                      <Input value={deviceLocation.lat.toString()} readOnly />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">{t('longitude')}</p>
+                      <Input value={deviceLocation.lng.toString()} readOnly />
+                    </div>
+                  </div>
+                  <Button className="mt-2" onClick={handleLocationUpdate}>
+                    {t('update_location')}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <LocationSelector 
+                    initialLocation={deviceLocation}
+                    onLocationChange={handleLocationChange}
+                  />
+                  <div className="flex space-x-2 mt-4">
+                    <Button onClick={saveLocation}>
+                      {t('save_location')}
+                    </Button>
+                    <Button variant="outline" onClick={() => setShowLocationMap(false)}>
+                      {t('cancel')}
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
             
             <Separator />
