@@ -10,8 +10,6 @@ import { ArrowLeft, QrCode, Loader2, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { registerDevice } from '@/services/deviceService';
 import { Tabs, TabsList, TabsContent, TabsTrigger } from '@/components/ui/tabs';
-import LocationSelector from '@/components/map/LocationSelector';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 // Activation method types
 type ActivationMethod = 'OTAA' | 'ABP';
@@ -35,7 +33,6 @@ const RegisterDevicePage: React.FC = () => {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [activationMethod, setActivationMethod] = useState<ActivationMethod>('OTAA');
-  const { t } = useLanguage();
   
   // OTAA parameters
   const [otaaParams, setOtaaParams] = useState<OTAAParams>({
@@ -55,8 +52,8 @@ const RegisterDevicePage: React.FC = () => {
     name: '',
     type: '',
     location: {
-      lat: 43.238949,
-      lng: 76.889709
+      lat: 37.7749,
+      lng: -122.4194
     }
   });
   
@@ -68,12 +65,18 @@ const RegisterDevicePage: React.FC = () => {
     }));
   };
   
-  // Handle location change from map
-  const handleLocationChange = (location: { lat: number; lng: number }) => {
-    setDeviceData(prev => ({
-      ...prev,
-      location
-    }));
+  // Handle location change
+  const updateLocation = (key: 'lat' | 'lng', value: string) => {
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue)) {
+      setDeviceData(prev => ({
+        ...prev,
+        location: {
+          ...prev.location,
+          [key]: numValue
+        }
+      }));
+    }
   };
   
   // Update OTAA parameters
@@ -95,20 +98,20 @@ const RegisterDevicePage: React.FC = () => {
   // Navigate to next step
   const nextStep = () => {
     if (step === 1 && (!deviceData.name || !deviceData.type)) {
-      toast.error(t('fill_required_fields'));
+      toast.error('Please fill in all required fields');
       return;
     }
     
     if (step === 3) {
       if (activationMethod === 'OTAA' && 
          (!otaaParams.appEUI || !otaaParams.devEUI || !otaaParams.appKey)) {
-        toast.error(t('fill_otaa_parameters'));
+        toast.error('Please fill in all OTAA parameters');
         return;
       }
       
       if (activationMethod === 'ABP' && 
          (!abpParams.devAddr || !abpParams.nwkSKey || !abpParams.appSKey)) {
-        toast.error(t('fill_abp_parameters'));
+        toast.error('Please fill in all ABP parameters');
         return;
       }
     }
@@ -134,10 +137,10 @@ const RegisterDevicePage: React.FC = () => {
       };
       
       const newDevice = await registerDevice(registrationData);
-      toast.success(t('device_registered_successfully'));
+      toast.success('Device registered successfully');
       navigate(`/devices/${newDevice.id}`);
     } catch (error) {
-      toast.error(t('failed_register_device'));
+      toast.error('Failed to register device');
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -154,17 +157,17 @@ const RegisterDevicePage: React.FC = () => {
           className="mr-2"
         >
           <ArrowLeft className="h-5 w-5" />
-          <span className="sr-only">{t('back')}</span>
+          <span className="sr-only">Back</span>
         </Button>
-        <h1 className="text-2xl font-bold tracking-tight">{t('register_new_device')}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Register New Device</h1>
       </div>
       
       <div className="max-w-2xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle>{t('device_registration')}</CardTitle>
+            <CardTitle>Device Registration</CardTitle>
             <CardDescription>
-              {t('connect_lorawan_device')}
+              Connect a new LoRaWAN device to your network
             </CardDescription>
           </CardHeader>
           
@@ -172,39 +175,56 @@ const RegisterDevicePage: React.FC = () => {
             {step === 1 && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">{t('device_name')}</Label>
+                  <Label htmlFor="name">Device Name</Label>
                   <Input 
                     id="name" 
-                    placeholder={t('enter_device_name')}
+                    placeholder="Enter device name"
                     value={deviceData.name}
                     onChange={(e) => updateDeviceData('name', e.target.value)}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="type">{t('device_type')}</Label>
+                  <Label htmlFor="type">Device Type</Label>
                   <Select 
                     value={deviceData.type}
                     onValueChange={(value) => updateDeviceData('type', value)}
                   >
                     <SelectTrigger id="type">
-                      <SelectValue placeholder={t('select_device_type')} />
+                      <SelectValue placeholder="Select device type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="sensor">{t('sensor')}</SelectItem>
-                      <SelectItem value="actuator">{t('actuator')}</SelectItem>
-                      <SelectItem value="gateway">{t('gateway')}</SelectItem>
-                      <SelectItem value="tracker">{t('tracker')}</SelectItem>
+                      <SelectItem value="sensor">Sensor</SelectItem>
+                      <SelectItem value="actuator">Actuator</SelectItem>
+                      <SelectItem value="gateway">Gateway</SelectItem>
+                      <SelectItem value="tracker">Tracker</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>{t('device_location')}</Label>
-                  <LocationSelector 
-                    initialLocation={deviceData.location}
-                    onLocationChange={handleLocationChange}
-                  />
+                  <Label>Device Location</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="latitude" className="text-xs">Latitude</Label>
+                      <Input 
+                        id="latitude" 
+                        placeholder="Latitude"
+                        value={deviceData.location.lat}
+                        onChange={(e) => updateLocation('lat', e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="longitude" className="text-xs">Longitude</Label>
+                      <Input 
+                        id="longitude" 
+                        placeholder="Longitude"
+                        value={deviceData.location.lng}
+                        onChange={(e) => updateLocation('lng', e.target.value)}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -213,9 +233,9 @@ const RegisterDevicePage: React.FC = () => {
               <div className="space-y-6">
                 <div className="text-center py-6">
                   <QrCode className="h-24 w-24 mx-auto mb-4 text-primary" />
-                  <h3 className="text-xl font-medium mb-2">{t('scan_device_qr_code')}</h3>
+                  <h3 className="text-xl font-medium mb-2">Scan Device QR Code</h3>
                   <p className="text-muted-foreground">
-                    {t('please_scan_device_qr_code')}
+                    Please scan the QR code on your LoRaWAN device to continue
                   </p>
                   
                   <div className="mt-6">
@@ -223,7 +243,7 @@ const RegisterDevicePage: React.FC = () => {
                       variant="outline" 
                       onClick={() => nextStep()}
                     >
-                      {t('manual_setup')}
+                      Manual Setup
                     </Button>
                   </div>
                 </div>
@@ -241,11 +261,11 @@ const RegisterDevicePage: React.FC = () => {
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="OTAA" id="otaa" />
-                      <Label htmlFor="otaa" className="font-medium">{t('otaa')}</Label>
+                      <Label htmlFor="otaa" className="font-medium">OTAA (Over-the-Air Activation)</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="ABP" id="abp" />
-                      <Label htmlFor="abp" className="font-medium">{t('abp')}</Label>
+                      <Label htmlFor="abp" className="font-medium">ABP (Activation By Personalization)</Label>
                     </div>
                   </RadioGroup>
                   
@@ -253,8 +273,8 @@ const RegisterDevicePage: React.FC = () => {
                     <Info className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <p className="text-xs text-muted-foreground">
                       {activationMethod === 'OTAA' 
-                        ? t('otaa_description') 
-                        : t('abp_description')}
+                        ? 'OTAA is more secure and allows for key regeneration. Devices perform a join procedure with the network.' 
+                        : 'ABP uses pre-configured keys and doesn\'t require a join procedure. Simpler but less secure than OTAA.'}
                     </p>
                   </div>
                 </div>
@@ -267,7 +287,7 @@ const RegisterDevicePage: React.FC = () => {
                   
                   <TabsContent value="OTAA" className="mt-4 space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="appEUI">{t('app_eui')}</Label>
+                      <Label htmlFor="appEUI">Application EUI</Label>
                       <Input 
                         id="appEUI" 
                         placeholder="e.g., 70B3D57ED0000001"
@@ -277,7 +297,7 @@ const RegisterDevicePage: React.FC = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="devEUI">{t('dev_eui')}</Label>
+                      <Label htmlFor="devEUI">Device EUI</Label>
                       <Input 
                         id="devEUI" 
                         placeholder="e.g., A8404194A1B43019"
@@ -287,7 +307,7 @@ const RegisterDevicePage: React.FC = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="appKey">{t('app_key')}</Label>
+                      <Label htmlFor="appKey">Application Key</Label>
                       <Input 
                         id="appKey" 
                         placeholder="e.g., 11B0282A189B75B0B4D2D8C7FA38548B"
@@ -299,7 +319,7 @@ const RegisterDevicePage: React.FC = () => {
                   
                   <TabsContent value="ABP" className="mt-4 space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="devAddr">{t('dev_addr')}</Label>
+                      <Label htmlFor="devAddr">Device Address</Label>
                       <Input 
                         id="devAddr" 
                         placeholder="e.g., 26011D83"
@@ -309,7 +329,7 @@ const RegisterDevicePage: React.FC = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="nwkSKey">{t('nwk_skey')}</Label>
+                      <Label htmlFor="nwkSKey">Network Session Key</Label>
                       <Input 
                         id="nwkSKey" 
                         placeholder="e.g., 7959294F19B037889A6F54428B482ABC"
@@ -319,7 +339,7 @@ const RegisterDevicePage: React.FC = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="appSKey">{t('app_skey')}</Label>
+                      <Label htmlFor="appSKey">Application Session Key</Label>
                       <Input 
                         id="appSKey" 
                         placeholder="e.g., 2B7E151628AED2A6ABF7158809CF4F3C"
@@ -335,39 +355,39 @@ const RegisterDevicePage: React.FC = () => {
             {step === 4 && (
               <div className="space-y-4">
                 <div className="text-center py-2">
-                  <h3 className="text-lg font-medium mb-2">{t('device_information')}</h3>
+                  <h3 className="text-lg font-medium mb-2">Device Information</h3>
                   <p className="text-muted-foreground text-sm">
-                    {t('review_confirm_device_details')}
+                    Review and confirm your device details
                   </p>
                 </div>
                 
                 <div className="space-y-4 border rounded-md p-4">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <p className="text-sm text-muted-foreground">{t('device_name')}</p>
+                      <p className="text-sm text-muted-foreground">Device Name</p>
                       <p className="font-medium">{deviceData.name}</p>
                     </div>
                     
                     <div>
-                      <p className="text-sm text-muted-foreground">{t('device_type')}</p>
+                      <p className="text-sm text-muted-foreground">Device Type</p>
                       <p className="font-medium capitalize">{deviceData.type}</p>
                     </div>
                   </div>
                   
                   <div>
-                    <p className="text-sm text-muted-foreground">{t('location')}</p>
+                    <p className="text-sm text-muted-foreground">Location</p>
                     <p className="font-medium">
                       {deviceData.location.lat.toFixed(4)}, {deviceData.location.lng.toFixed(4)}
                     </p>
                   </div>
                   
                   <div>
-                    <p className="text-sm text-muted-foreground">{t('activation_method')}</p>
+                    <p className="text-sm text-muted-foreground">Activation Method</p>
                     <p className="font-medium">{activationMethod}</p>
                   </div>
                   
                   <div>
-                    <p className="text-sm text-muted-foreground">{t('network_configuration')}</p>
+                    <p className="text-sm text-muted-foreground">Network Configuration</p>
                     <p className="font-medium">LoRaWAN v1.0.4</p>
                   </div>
                 </div>
@@ -381,19 +401,19 @@ const RegisterDevicePage: React.FC = () => {
                 variant="outline" 
                 onClick={prevStep}
               >
-                {t('back')}
+                Back
               </Button>
             ) : (
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/devices')}
               >
-                {t('cancel')}
+                Cancel
               </Button>
             )}
             
             {step < 4 ? (
-              <Button onClick={nextStep}>{t('next')}</Button>
+              <Button onClick={nextStep}>Next</Button>
             ) : (
               <Button 
                 onClick={handleRegister}
@@ -402,10 +422,10 @@ const RegisterDevicePage: React.FC = () => {
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {t('registering')}
+                    Registering...
                   </>
                 ) : (
-                  t('register_device')
+                  'Register Device'
                 )}
               </Button>
             )}
