@@ -1,19 +1,33 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart, Battery, Signal, Clock, ArrowRight } from 'lucide-react';
+import { BarChart, Battery, Signal, Clock, ArrowRight, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from '@/components/ui/alert-dialog';
 import { Device } from '@/services/deviceService';
+import { deleteDevice } from '@/services/device/deviceWriteService';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface DeviceCardProps {
   device: Device;
+  onDeviceDeleted?: () => void;
 }
 
-const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
+const DeviceCard: React.FC<DeviceCardProps> = ({ device, onDeviceDeleted }) => {
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+
   const statusColors = {
     online: 'bg-status-online',
     offline: 'bg-status-offline',
@@ -41,6 +55,21 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
   };
 
   const lastSeen = formatDistanceToNow(new Date(device.lastSeen), { addSuffix: true });
+
+  const handleDeleteDevice = async () => {
+    try {
+      await deleteDevice(device.id);
+      toast.success(`${device.name} has been deleted successfully`);
+      if (onDeviceDeleted) {
+        onDeviceDeleted();
+      }
+    } catch (error) {
+      console.error('Failed to delete device:', error);
+      toast.error('Failed to delete device');
+    } finally {
+      setIsConfirmingDelete(false);
+    }
+  };
 
   return (
     <Card className={cn(
@@ -120,13 +149,44 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
         </div>
       </CardContent>
       
-      <CardFooter className="p-4 pt-0 flex justify-end">
+      <CardFooter className="p-4 pt-0 flex justify-between items-center">
+        <Button 
+          variant="destructive" 
+          size="sm" 
+          onClick={() => setIsConfirmingDelete(true)}
+          className="flex items-center"
+        >
+          <Trash2 className="h-4 w-4 mr-1" />
+          Delete
+        </Button>
+        
         <Link to={`/devices/${device.id}`}>
           <Button variant="outline" size="sm" className="text-xs">
             <span>Details</span>
             <ArrowRight className="h-3 w-3 ml-1" />
           </Button>
         </Link>
+
+        <AlertDialog open={isConfirmingDelete} onOpenChange={setIsConfirmingDelete}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete the device "{device.name}" and all associated data.
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDeleteDevice} 
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardFooter>
     </Card>
   );

@@ -7,9 +7,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface DeviceGridProps {
   devices: Device[];
   isLoading: boolean;
+  onDeviceDeleted?: () => void;
 }
 
-const DeviceGrid: React.FC<DeviceGridProps> = ({ devices, isLoading }) => {
+const DeviceGrid: React.FC<DeviceGridProps> = ({ devices, isLoading, onDeviceDeleted }) => {
   // Create skeleton cards for loading state
   const skeletons = Array.from({ length: 6 }, (_, i) => (
     <div key={`skeleton-${i}`} className="animate-pulse">
@@ -39,10 +40,15 @@ const DeviceGrid: React.FC<DeviceGridProps> = ({ devices, isLoading }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {devices.map((device) => (
-        <DeviceCard key={device.id} device={device} />
+        <DeviceCard 
+          key={device.id} 
+          device={device} 
+          onDeviceDeleted={onDeviceDeleted} 
+        />
       ))}
     </div>
   );
 };
 
 export default DeviceGrid;
+
