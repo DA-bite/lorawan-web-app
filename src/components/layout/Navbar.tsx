@@ -36,10 +36,7 @@ const Navbar: React.FC = () => {
       <div className="flex h-16 items-center justify-between sm:px-6 px-4">
         {/* Left section for menu toggle or logo */}
         <div className="flex items-center">
-          {isMobile && <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} className="mr-2 active:scale-95 transition-transform">
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">{t('open_menu')}</span>
-            </Button>}
+          {isMobile}
           <Link to="/" className="flex items-center space-x-2">
             
           </Link>
