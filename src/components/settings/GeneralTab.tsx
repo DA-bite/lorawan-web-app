@@ -6,6 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useSettings } from '@/contexts/SettingsContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+// Define the valid types to match SettingsContext
+type TemperatureUnit = 'celsius' | 'fahrenheit';
+type DistanceUnit = 'metric' | 'imperial';
+type TimeFormat = '12h' | '24h';
+
 const GeneralTab: React.FC = () => {
   const { settings, updateSettings } = useSettings();
   const { language, setLanguage, t } = useLanguage();
@@ -24,7 +29,7 @@ const GeneralTab: React.FC = () => {
             <Label htmlFor="temperature-unit">{t('temperature_unit')}</Label>
             <Select 
               value={settings.temperatureUnit} 
-              onValueChange={(value) => 
+              onValueChange={(value: TemperatureUnit) => 
                 updateSettings({ temperatureUnit: value })
               }
             >
@@ -42,7 +47,7 @@ const GeneralTab: React.FC = () => {
             <Label htmlFor="distance-unit">{t('distance_unit')}</Label>
             <Select 
               value={settings.distanceUnit} 
-              onValueChange={(value) => 
+              onValueChange={(value: DistanceUnit) => 
                 updateSettings({ distanceUnit: value })
               }
             >
@@ -60,7 +65,7 @@ const GeneralTab: React.FC = () => {
             <Label htmlFor="time-format">{t('time_format')}</Label>
             <Select 
               value={settings.timeFormat} 
-              onValueChange={(value) => 
+              onValueChange={(value: TimeFormat) => 
                 updateSettings({ timeFormat: value })
               }
             >
