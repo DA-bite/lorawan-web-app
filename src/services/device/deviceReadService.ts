@@ -1,7 +1,8 @@
+
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Device } from "./deviceTypes";
-import { validateStatus, parseLocation, parseData } from "./deviceUtils";
+import { Device, DeviceMetrics, DeviceAnalytics } from "./deviceTypes";
+import { validateStatus, parseLocation, parseData, formatDeviceMetrics, formatDeviceAnalytics } from "./deviceUtils";
 
 // Get all devices for the current user
 export const getDevices = async (): Promise<Device[]> => {
@@ -87,7 +88,7 @@ export const getDeviceById = async (id: string): Promise<Device> => {
 };
 
 // Get device metrics history
-export const getDeviceMetrics = async (deviceId: string, limit: number = 100): Promise<any[]> => {
+export const getDeviceMetrics = async (deviceId: string, limit: number = 100): Promise<DeviceMetrics[]> => {
   try {
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData.session) {
@@ -117,7 +118,7 @@ export const getDeviceMetrics = async (deviceId: string, limit: number = 100): P
 };
 
 // Get device metrics for specific date
-export const getDeviceMetricsForDate = async (deviceId: string, date: Date): Promise<any[]> => {
+export const getDeviceMetricsForDate = async (deviceId: string, date: Date): Promise<DeviceMetrics[]> => {
   try {
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData.session) {
@@ -151,7 +152,7 @@ export const getDeviceMetricsForDate = async (deviceId: string, date: Date): Pro
 };
 
 // Get device analytics for a date range
-export const getDeviceAnalytics = async (deviceId: string, startDate: Date, endDate: Date): Promise<any[]> => {
+export const getDeviceAnalytics = async (deviceId: string, startDate: Date, endDate: Date): Promise<DeviceAnalytics[]> => {
   try {
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData.session) {

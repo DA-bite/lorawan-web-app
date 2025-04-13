@@ -1,4 +1,6 @@
+
 import { Json } from "@/integrations/supabase/types";
+import { DeviceMetrics, DeviceAnalytics } from "./deviceTypes";
 
 // Helper functions to parse and validate data from the database
 export function validateStatus(status: string): 'online' | 'offline' | 'warning' | 'error' {
@@ -38,7 +40,7 @@ export const parseTimestamp = (timestamp: string): Date => {
 };
 
 // Convert device metrics from database to frontend format
-export const formatDeviceMetrics = (metrics: any[]): any[] => {
+export const formatDeviceMetrics = (metrics: any[]): DeviceMetrics[] => {
   return metrics.map(metric => ({
     timestamp: metric.timestamp,
     temperature: metric.temperature,
@@ -49,7 +51,7 @@ export const formatDeviceMetrics = (metrics: any[]): any[] => {
 };
 
 // Convert analytics data from database to frontend format
-export const formatDeviceAnalytics = (analytics: any): any => {
+export const formatDeviceAnalytics = (analytics: any): DeviceAnalytics => {
   return {
     date: analytics.date,
     averages: {

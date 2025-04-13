@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import DeviceLineChart from '@/components/charts/DeviceLineChart';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Device, getDeviceMetricsForDate } from '@/services/device';
+import { Device, DeviceMetrics, getDeviceMetricsForDate } from '@/services/device';
 import { toast } from 'sonner';
 
 interface DeviceChartDisplayProps {
@@ -15,7 +15,7 @@ export const DeviceChartDisplay: React.FC<DeviceChartDisplayProps> = ({
   selectedDate 
 }) => {
   const isMobile = useIsMobile();
-  const [deviceData, setDeviceData] = useState<any[]>([]);
+  const [deviceData, setDeviceData] = useState<DeviceMetrics[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
   useEffect(() => {
