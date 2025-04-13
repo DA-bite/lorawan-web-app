@@ -1,4 +1,3 @@
-
 import { Json } from "@/integrations/supabase/types";
 
 // Helper functions to parse and validate data from the database
@@ -32,3 +31,51 @@ export function parseData(jsonData: Json): { [key: string]: any } {
   console.warn('Invalid device data:', jsonData);
   return {};
 }
+
+// Helper to convert database timestamp to date object
+export const parseTimestamp = (timestamp: string): Date => {
+  return new Date(timestamp);
+};
+
+// Convert device metrics from database to frontend format
+export const formatDeviceMetrics = (metrics: any[]): any[] => {
+  return metrics.map(metric => ({
+    timestamp: metric.timestamp,
+    temperature: metric.temperature,
+    humidity: metric.humidity,
+    battery: metric.battery,
+    signal: metric.signal
+  }));
+};
+
+// Convert analytics data from database to frontend format
+export const formatDeviceAnalytics = (analytics: any): any => {
+  return {
+    date: analytics.date,
+    averages: {
+      temperature: analytics.avg_temperature,
+      humidity: analytics.avg_humidity,
+      battery: analytics.avg_battery,
+      signal: analytics.avg_signal
+    },
+    ranges: {
+      temperature: {
+        min: analytics.min_temperature,
+        max: analytics.max_temperature
+      },
+      humidity: {
+        min: analytics.min_humidity,
+        max: analytics.max_humidity
+      },
+      battery: {
+        min: analytics.min_battery,
+        max: analytics.max_battery
+      },
+      signal: {
+        min: analytics.min_signal,
+        max: analytics.max_signal
+      }
+    },
+    dataPoints: analytics.data_points
+  };
+};

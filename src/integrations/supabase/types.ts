@@ -9,6 +9,115 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      analytics: {
+        Row: {
+          avg_battery: number | null
+          avg_humidity: number | null
+          avg_signal: number | null
+          avg_temperature: number | null
+          created_at: string
+          data_points: number
+          date: string
+          device_id: string
+          id: string
+          max_battery: number | null
+          max_humidity: number | null
+          max_signal: number | null
+          max_temperature: number | null
+          min_battery: number | null
+          min_humidity: number | null
+          min_signal: number | null
+          min_temperature: number | null
+          updated_at: string
+        }
+        Insert: {
+          avg_battery?: number | null
+          avg_humidity?: number | null
+          avg_signal?: number | null
+          avg_temperature?: number | null
+          created_at?: string
+          data_points?: number
+          date: string
+          device_id: string
+          id?: string
+          max_battery?: number | null
+          max_humidity?: number | null
+          max_signal?: number | null
+          max_temperature?: number | null
+          min_battery?: number | null
+          min_humidity?: number | null
+          min_signal?: number | null
+          min_temperature?: number | null
+          updated_at?: string
+        }
+        Update: {
+          avg_battery?: number | null
+          avg_humidity?: number | null
+          avg_signal?: number | null
+          avg_temperature?: number | null
+          created_at?: string
+          data_points?: number
+          date?: string
+          device_id?: string
+          id?: string
+          max_battery?: number | null
+          max_humidity?: number | null
+          max_signal?: number | null
+          max_temperature?: number | null
+          min_battery?: number | null
+          min_humidity?: number | null
+          min_signal?: number | null
+          min_temperature?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      device_metrics: {
+        Row: {
+          battery: number
+          device_id: string
+          humidity: number | null
+          id: string
+          signal: number
+          temperature: number | null
+          timestamp: string
+        }
+        Insert: {
+          battery: number
+          device_id: string
+          humidity?: number | null
+          id?: string
+          signal: number
+          temperature?: number | null
+          timestamp?: string
+        }
+        Update: {
+          battery?: number
+          device_id?: string
+          humidity?: number | null
+          id?: string
+          signal?: number
+          temperature?: number | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_metrics_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       devices: {
         Row: {
           battery: number

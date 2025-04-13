@@ -1,4 +1,3 @@
-
 export const englishTranslations = {
   // Navigation
   'dashboard': 'Dashboard',
@@ -120,4 +119,33 @@ export const englishTranslations = {
   'update_profile': 'Update Profile',
   'latitude': 'Latitude',
   'longitude': 'Longitude',
+  
+  // Analytics
+  'analytics_title': 'Analytics',
+  'select_device': 'Select device',
+  'device_type': 'Device Type',
+  'system_metrics': 'System Metrics',
+  'sensor_data': 'Sensor Data',
+  'battery_signal': 'Battery & Signal Strength',
+  'network_statistics': 'Network Statistics',
+  'power_statistics': 'Power Statistics',
+  'packets_sent': 'Packets Sent',
+  'packets_received': 'Packets Received',
+  'packet_loss': 'Packet Loss',
+  'avg_rssi': 'Average RSSI',
+  'avg_snr': 'Average SNR',
+  'battery_level': 'Battery Level',
+  'battery_voltage': 'Battery Voltage',
+  'avg_power_consumption': 'Avg. Power Consumption',
+  'est_battery_life': 'Est. Battery Life',
+  'power_mode': 'Power Mode',
+  'statistics': 'Statistics',
+  'min': 'Min',
+  'max': 'Max',
+  'average': 'Average',
+  'no_sensor_data': 'No sensor data available',
+  'no_sensor_data_message': 'This device doesn\'t have any sensor data or history to display',
+  'no_device_selected': 'No device selected',
+  'select_device_message': 'Select a device to view analytics',
+  'sensor_readings': 'Sensor Readings',
 };

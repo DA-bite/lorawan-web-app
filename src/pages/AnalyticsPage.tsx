@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getDevices } from '@/services/deviceService';
+import { getDevices, getDeviceAnalytics, getDeviceMetricsForDate } from '@/services/device';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import DeviceLineChart from '@/components/charts/DeviceLineChart';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -16,15 +17,57 @@ const AnalyticsPage: React.FC = () => {
   const isMobile = useIsMobile();
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [metrics, setMetrics] = useState<any[]>([]);
+  const [analytics, setAnalytics] = useState<any | null>(null);
   
   const { data: devices, isLoading } = useQuery({
     queryKey: ['devices'],
     queryFn: getDevices,
   });
   
-  const selectedDevice = devices?.find(d => d.id === selectedDeviceId) || devices?.[0];
+  useEffect(() => {
+    if (selectedDeviceId) {
+      // Fetch analytics for last 7 days
+      const fetchAnalytics = async () => {
+        try {
+          const endDate = new Date();
+          const startDate = subDays(endDate, 7);
+          const data = await getDeviceAnalytics(selectedDeviceId, startDate, endDate);
+          
+          if (data && data.length > 0) {
+            setAnalytics(data[data.length - 1]); // Get most recent analytics
+          }
+        } catch (error) {
+          console.error('Error fetching analytics:', error);
+        }
+      };
+
+      // Fetch metrics for selected date
+      const fetchMetrics = async () => {
+        try {
+          const data = await getDeviceMetricsForDate(selectedDeviceId, selectedDate);
+          setMetrics(data);
+        } catch (error) {
+          console.error('Error fetching metrics:', error);
+        }
+      };
+
+      fetchAnalytics();
+      fetchMetrics();
+    }
+  }, [selectedDeviceId, selectedDate]);
   
-  const batteryData = selectedDevice ? Array.from({ length: 24 }, (_, i) => {
+  // Set first device as selected when devices load
+  useEffect(() => {
+    if (devices && devices.length > 0 && !selectedDeviceId) {
+      setSelectedDeviceId(devices[0].id);
+    }
+  }, [devices, selectedDeviceId]);
+
+  const selectedDevice = devices?.find(d => d.id === selectedDeviceId);
+  
+  // If no metrics available, generate battery data
+  const batteryData = metrics.length === 0 && selectedDevice ? Array.from({ length: 24 }, (_, i) => {
     const timestamp = new Date(selectedDate);
     timestamp.setHours(i);
     timestamp.setMinutes(0);
@@ -34,18 +77,11 @@ const AnalyticsPage: React.FC = () => {
       battery: Math.max(1, selectedDevice.battery - i * (Math.random() * 0.5)),
       signal: Math.max(10, selectedDevice.signal - i * (Math.random() * 0.7))
     };
-  }) : [];
+  }) : metrics;
   
-  const sensorData = selectedDevice?.data?.history ? 
-    selectedDevice.data.history.map((item: any, index: number) => {
-      const timestamp = new Date(selectedDate);
-      timestamp.setHours(Math.floor(index * (24 / selectedDevice.data.history.length)));
-      timestamp.setMinutes((index * (24 / selectedDevice.data.history.length) % 1) * 60);
-      return {
-        ...item,
-        timestamp: timestamp.toISOString(),
-      };
-    }) : [];
+  // Use actual metrics or device history if available
+  const sensorData = metrics.length > 0 ? metrics : 
+    selectedDevice?.data?.history ? selectedDevice.data.history : [];
   
   const sensorDataKeys = sensorData.length > 0
     ? Object.keys(sensorData[0]).filter(key => key !== 'timestamp')

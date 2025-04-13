@@ -1,10 +1,9 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, MapPin, Power, Calendar } from 'lucide-react';
-import { Device } from '@/services/device';
+import { Device, getDeviceMetricsForDate } from '@/services/device';
 import DeviceLineChart from '@/components/charts/DeviceLineChart';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
@@ -25,20 +24,45 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [metrics, setMetrics] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Determine chart data keys based on device data
-  const getDataKeys = () => {
-    if (!device.data?.history || device.data.history.length === 0) return [];
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getDeviceMetricsForDate(device.id, selectedDate);
+        
+        if (data.length > 0) {
+          setMetrics(data);
+        } else if (device.data?.history) {
+          setMetrics(device.data.history);
+        }
+      } catch (error) {
+        console.error('Error fetching device metrics:', error);
+        if (device.data?.history) {
+          setMetrics(device.data.history);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    return Object.keys(device.data.history[0])
+    fetchMetrics();
+  }, [device, selectedDate]);
+
+  const getDataKeys = () => {
+    if (metrics.length === 0) return [];
+    
+    return Object.keys(metrics[0])
       .filter(key => key !== 'timestamp')
-      .filter(key => typeof device.data.history[0][key] === 'number');
+      .filter(key => typeof metrics[0][key] === 'number');
   };
 
   const getYAxisLabel = () => {
-    if (!device.data?.history || device.data.history.length === 0) return '';
+    if (metrics.length === 0) return '';
     
-    const keys = Object.keys(device.data.history[0]).filter(key => key !== 'timestamp');
+    const keys = Object.keys(metrics[0]).filter(key => key !== 'timestamp');
     if (keys.includes('temperature')) return 'Temperature (°C)';
     if (keys.includes('humidity')) return 'Humidity (%)';
     if (keys.includes('battery')) return 'Battery (%)';
@@ -46,11 +70,11 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   };
   
   const getTooltipFormatter = () => {
-    if (!device.data?.history || device.data.history.length === 0) {
+    if (metrics.length === 0) {
       return (value: number) => `${value}`;
     }
     
-    const keys = Object.keys(device.data.history[0]).filter(key => key !== 'timestamp');
+    const keys = Object.keys(metrics[0]).filter(key => key !== 'timestamp');
     if (keys.includes('temperature')) {
       return (value: number) => `${value.toFixed(1)}°C`;
     }
@@ -160,11 +184,11 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         </Card>
       </div>
       
-      {device.data?.history && device.data.history.length > 0 && (
+      {metrics.length > 0 && (
         <div className={isMobile ? "w-full overflow-hidden" : ""}>
           <DeviceLineChart
             title="Historical Data"
-            data={device.data.history}
+            data={metrics}
             dataKeys={getDataKeys()}
             yAxisLabel={getYAxisLabel()}
             tooltipFormatter={getTooltipFormatter()}
