@@ -1,5 +1,6 @@
 
-import { englishTranslations } from './en';
-import { russianTranslations } from './ru';
+import { en } from './en';
+import { ru } from './ru';
 
-export { englishTranslations, russianTranslations };
+export const englishTranslations = en;
+export const russianTranslations = ru;
