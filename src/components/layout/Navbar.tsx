@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, Menu, Moon, Sun } from 'lucide-react';
@@ -10,15 +9,21 @@ import MobileSidebar from './MobileSidebar';
 import NotificationDropdown from '../notifications/NotificationDropdown';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useLanguage } from '@/contexts/LanguageContext';
-
 const Navbar: React.FC = () => {
-  const { theme, toggleTheme } = useTheme();
-  const { user, logout } = useAuth();
+  const {
+    theme,
+    toggleTheme
+  } = useTheme();
+  const {
+    user,
+    logout
+  } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { t } = useLanguage();
-  
+  const {
+    t
+  } = useLanguage();
   const handleSignOut = async () => {
     try {
       await logout();
@@ -27,31 +32,22 @@ const Navbar: React.FC = () => {
       console.error('Failed to sign out:', error);
     }
   };
-  
-  return (
-    <header className="sticky top-0 z-40 w-full border-b backdrop-blur bg-background/90 glass transition-colors duration-300">
+  return <header className="sticky top-0 z-40 w-full border-b backdrop-blur bg-background/90 glass transition-colors duration-300">
       <div className="flex h-16 items-center justify-between sm:px-6 px-4">
         {/* Left section for menu toggle or logo */}
         <div className="flex items-center">
-          {isMobile && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setSidebarOpen(true)}
-              className="mr-2 active:scale-95 transition-transform"
-            >
+          {isMobile && <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} className="mr-2 active:scale-95 transition-transform">
               <Menu className="h-5 w-5" />
               <span className="sr-only">{t('open_menu')}</span>
-            </Button>
-          )}
+            </Button>}
           <Link to="/" className="flex items-center space-x-2">
-            <span className="font-bold text-lg hidden sm:inline-block">LoRaWatchdog</span>
+            
           </Link>
         </div>
         
         {/* Centered title or placeholder */}
         <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
-          <span className="font-semibold">{isMobile && 'LoRaWatchdog'}</span>
+          
         </div>
         
         {/* Right section for actions */}
@@ -92,8 +88,6 @@ const Navbar: React.FC = () => {
       </div>
       
       {isMobile && <MobileSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />}
-    </header>
-  );
+    </header>;
 };
-
 export default Navbar;
